@@ -1,1 +1,1486 @@
+<!DOCTYPE html>
+<html lang="en">
 
+  <head>
+    <meta charset="UTF-8">
+    <title>Untitled</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stosh's Wallet UI Clone (Expanded)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* CSS Variables for Cleanliness and DRY principle */
+        :root {
+            --color-black: #000000;
+            --color-white: #FFFFFF;
+            --color-green: #52FF00; /* Neon Green */
+            --color-light-gray: #A0A0A0;
+            --color-separator: #2E2E2E;
+            --color-dark-gray: #1C1C1E;
+            --color-red: #FF4500;
+            --font-family: 'Roboto', sans-serif;
+            --padding-h: 20px;
+        }
+
+        /* Base Styles simulating a mobile phone screen */
+        body {
+            /* Modified for full screen */
+            background-color: var(--color-black); /* Set body background to black */
+            display: block; /* Remove flex center */
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family);
+            font-size: 14px;
+            /* Ensure it fills viewport */
+            min-height: 100vh;
+        }
+
+        /* --- REMOVED PHONE FRAME STYLES --- */
+
+        .container {
+            /* Adjusted for full screen */
+            width: 100%;
+            max-width: 100%; /* Important: Remove width constraint */
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: var(--color-white);
+            margin: 0 auto; /* Center content if needed, but width is 100% now */
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 40px var(--padding-h) 15px;
+        }
+
+        .wallet-info {
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+        }
+
+        .wallet-info i {
+            margin-left: 5px;
+            color: var(--color-light-gray);
+        }
+
+        .header-icons i {
+            margin-left: 15px;
+            font-size: 20px;
+        }
+
+        /* Main Content Scroll Area */
+        .content-scroll {
+            flex: 1;
+            overflow-y: hidden; /* Hide scrollbar for main area */
+            padding: 0 var(--padding-h);
+            position: relative;
+        }
+        
+        .screen {
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            overflow-y: auto;
+            padding-bottom: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        
+        .screen.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Home Screen Specific Styles (Reused from previous version) */
+        .balance-card {
+            padding-top: 20px;
+        }
+
+        .balance-text {
+            font-size: 50px;
+            font-weight: 700;
+        }
+
+        .balance-sub-row {
+            display: flex;
+            align-items: center;
+            margin-top: 5px;
+            position: relative;
+        }
+
+        .balance-sub-row span {
+            color: var(--color-light-gray);
+            font-size: 14px;
+            margin-right: 5px;
+        }
+
+        .chart-placeholder {
+            position: absolute;
+            right: 0;
+            top: 5px;
+            width: 100px;
+            height: 30px;
+        }
+        
+        .chart-placeholder::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to right, rgba(82, 255, 0, 0.2), var(--color-green));
+        }
+
+        .action-buttons-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px 0;
+        }
+
+        .action-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            width: 25%;
+            cursor: pointer;
+        }
+
+        .action-button-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--color-green);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.3s;
+        }
+
+        .action-button.disabled .action-button-circle {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .action-button.disabled .action-button-label {
+            opacity: 0.6;
+        }
+
+        .action-button-circle i {
+            color: var(--color-black);
+            font-size: 18px;
+        }
+
+        .action-button-label {
+            margin-top: 8px;
+            font-size: 14px;
+        }
+
+        /* Tabs (Crypto/NFT/DeFi) */
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid var(--color-separator);
+            padding-bottom: 5px;
+            margin-top: 10px;
+        }
+
+        .tab-button {
+            padding: 5px 15px 10px 0;
+            margin-right: 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .tab-button.active {
+            font-weight: 500;
+            border-bottom: 2px solid var(--color-white);
+            margin-bottom: -1px; 
+        }
+        
+        .tab-button:not(.active) {
+            color: var(--color-light-gray);
+        }
+
+        /* Asset List (Reused Row Styles) */
+        .asset-list {
+            padding-top: 20px;
+        }
+        
+        .assets-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .assets-header-text {
+            color: var(--color-light-gray);
+            font-size: 15px;
+        }
+
+        .assets-header-value {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .asset-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--color-separator);
+        }
+
+        .asset-icon-container {
+            width: 30px;
+            text-align: center;
+            margin-right: 10px;
+        }
+        
+        .asset-icon-container i, .usdt-icon {
+            font-size: 20px;
+        }
+        
+        .usdt-icon { color: #26A17B; font-weight: 700; }
+        .btc-icon { color: #F7931A; }
+        .eth-icon { color: #627EEA; }
+        .xrp-icon { color: #000000; background-color: #000000; color: var(--color-white); padding: 2px; border-radius: 50%;}
+        .sol-icon { color: #9945FF; }
+
+        .asset-text-container {
+            flex-grow: 1;
+        }
+
+        .asset-ticker {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .asset-price {
+            font-size: 12px;
+            color: var(--color-light-gray);
+        }
+
+        .asset-change-container {
+            text-align: right;
+            width: 60px;
+        }
+
+        .asset-change {
+            font-size: 12px;
+        }
+        
+        .positive-change { color: var(--color-green); }
+        .negative-change { color: var(--color-red); }
+
+        .asset-value-container {
+            text-align: right;
+            margin-left: 15px;
+        }
+
+        .asset-balance {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .asset-value {
+            font-size: 12px;
+            color: var(--color-light-gray);
+        }
+        
+        /* Token Screen List Styles */
+        .search-bar {
+            background-color: var(--color-dark-gray);
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            color: var(--color-light-gray);
+            font-size: 15px;
+        }
+        
+        .market-list-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .token-row {
+            padding: 10px 0;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--color-separator);
+        }
+        
+        .token-icon {
+            font-size: 22px;
+            width: 30px;
+            text-align: center;
+            margin-right: 10px;
+        }
+        
+        .token-details {
+            flex-grow: 1;
+        }
+        
+        .token-name {
+            font-size: 15px;
+            font-weight: 500;
+        }
+        
+        .token-ticker {
+            font-size: 12px;
+            color: var(--color-light-gray);
+        }
+        
+        .token-price-info {
+            text-align: right;
+        }
+        
+        .token-price {
+            font-size: 15px;
+            font-weight: 500;
+        }
+        
+        /* Earn Screen Styles */
+        .earn-title {
+             font-size: 24px;
+             font-weight: 700;
+             margin: 15px 0 20px 0;
+        }
+        
+        .earn-option-card {
+            background-color: var(--color-dark-gray);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+        }
+        
+        .earn-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .earn-coin-name {
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .earn-apr-label {
+            font-size: 12px;
+            color: var(--color-light-gray);
+            margin-bottom: 4px;
+        }
+        
+        .earn-apr {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--color-green);
+        }
+        
+        .earn-details {
+            font-size: 12px;
+            color: var(--color-light-gray);
+            padding-top: 10px;
+            border-top: 1px solid var(--color-separator);
+        }
+        
+        /* Discover Screen Styles */
+        .discover-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 15px 0 20px 0;
+        }
+        
+        .discover-section-title {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+        
+        .news-article {
+            background-color: var(--color-dark-gray);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            cursor: pointer;
+        }
+        
+        .news-headline {
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .news-source {
+            font-size: 12px;
+            color: var(--color-light-gray);
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            height: 70px;
+            border-top: 1px solid var(--color-separator);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            position: relative;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 20%;
+            cursor: pointer;
+        }
+
+        .nav-item i {
+            font-size: 20px;
+            color: var(--color-light-gray);
+        }
+
+        .nav-item.active i, .nav-item.active .nav-text {
+            color: var(--color-white);
+        }
+
+        .nav-text {
+            font-size: 10px;
+            margin-top: 4px;
+            color: var(--color-light-gray);
+        }
+        
+        .trade-button-placeholder {
+            width: 20%;
+            height: 100%;
+        }
+        
+        .trade-button {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--color-green);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            cursor: pointer;
+        }
+        
+        .trade-button i {
+            color: var(--color-black) !important;
+            font-size: 20px;
+        }
+
+        /* Modal Styles (Unchanged) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: flex-end;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--color-dark-gray);
+            width: 100%;
+            max-width: 450px; /* Increased max width for better full-screen appearance */
+            padding: 20px;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            /* Added for pop-up screen functionality: */
+            position: relative; 
+            height: 90vh; /* Set a default height for the full-screen flow */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+        
+        /* NEW: Styles for the multi-step pages within the main modal-content */
+        .modal-page {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: var(--color-dark-gray); /* Ensures page background is dark gray */
+            padding: 20px;
+            box-sizing: border-box;
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        
+        .modal-page.active {
+            display: flex;
+        }
+        
+        .modal-page-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-page-header i {
+            font-size: 20px;
+            cursor: pointer;
+            margin-right: 15px;
+        }
+        
+        .modal-page-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            /* For the initial Send Options modal which uses .modal-title */
+        }
+        
+        .address-row, .no-history-text {
+            padding: 10px;
+            background-color: var(--color-black);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .address-coin {
+            font-size: 12px;
+            color: var(--color-green);
+            margin-bottom: 5px;
+        }
+
+        .address-text {
+            font-size: 14px;
+            word-wrap: break-word;
+            color: var(--color-white); /* Ensures address text is white */
+        }
+        
+        .no-history-text {
+            text-align: center;
+            font-size: 16px;
+            color: var(--color-light-gray);
+            margin: 40px 0;
+        }
+
+        .modal-close-button {
+            padding: 12px;
+            background-color: var(--color-green);
+            color: var(--color-black);
+            font-weight: 700;
+            text-align: center;
+            border-radius: 8px;
+            margin-top: 20px;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        /* NEW: Send Options Styles */
+        .send-option {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--color-separator);
+            cursor: pointer;
+        }
+        .send-option:last-child { border-bottom: none; }
+        
+        .send-icon-container {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--color-green);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .send-icon-container i {
+            color: var(--color-black);
+            font-size: 18px;
+        }
+        
+        .send-details {
+            flex-grow: 1;
+        }
+        
+        .send-title {
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .send-subtitle {
+            font-size: 12px;
+            color: var(--color-light-gray);
+        }
+
+        /* NEW: Form/Input Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--color-light-gray);
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--color-black);
+            border: 1px solid var(--color-separator);
+            border-radius: 8px;
+            color: var(--color-white);
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        
+        /* NEW: Checkout styles */
+        .checkout-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--color-separator);
+            font-size: 15px;
+        }
+        
+        .checkout-row .label {
+            color: var(--color-light-gray);
+        }
+        
+        .checkout-row .value {
+            font-weight: 500;
+        }
+        
+        .checkout-total {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--color-green);
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid var(--color-separator);
+        }
+        
+        .card-details-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--color-separator);
+        }
+        
+        .card-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .card-logo {
+            width: 30px;
+            height: 20px;
+            object-fit: contain;
+            margin-right: 10px;
+        }
+
+        /* NEW: Confirmation/Error Modal Styles */
+        .confirm-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .confirm-modal-overlay.active {
+            display: flex;
+        }
+        
+        .confirm-modal-content {
+            text-align: center;
+            padding: 30px 20px;
+            background-color: var(--color-dark-gray);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 350px;
+        }
+        
+        .confirm-modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        
+        .confirm-modal-text {
+            color: var(--color-light-gray);
+            margin-bottom: 25px;
+        }
+        
+        .confirm-modal-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        
+        .confirm-modal-actions button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        
+        .confirm-modal-actions .btn-cancel {
+            background-color: var(--color-separator);
+            color: var(--color-white);
+        }
+        
+        .confirm-modal-actions .btn-confirm {
+            background-color: var(--color-green);
+            color: var(--color-black);
+        }
+        
+        /* NEW: Spinner for transaction */
+        .transaction-spinner-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            margin-top: 50px;
+        }
+        
+        .transaction-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid var(--color-green);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .transaction-message {
+            margin-top: 15px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <i class="fas fa-grip-lines"></i>
+        <div class="wallet-info">
+            <span>Stosh's Wallet</span>
+            <i class="fas fa-caret-down"></i>
+        </div>
+        <div class="header-icons">
+            <i class="fas fa-globe"></i>
+            <i class="far fa-comment"></i>
+        </div>
+    </div>
+
+    <div class="content-scroll">
+        
+        <div id="home-screen" class="screen active">
+            <div class="balance-card">
+                <div class="balance-text">$15,645.90</div>
+                <div class="balance-sub-row">
+                    <span>+$15,892.21 (0.553316 BTC)</span>
+                    <i class="fas fa-caret-down" style="font-size: 10px;"></i>
+                    <span style="margin-left: 5px;">1W</span>
+                    <div class="chart-placeholder"></div>
+                </div>
+            </div>
+
+            <div class="action-buttons-row">
+                <div class="action-button" id="send-btn" onclick="showModal('send-options-modal')">
+                    <div class="action-button-circle"><i class="fas fa-arrow-up"></i></div>
+                    <span class="action-button-label">Send</span>
+                </div>
+                <div class="action-button" onclick="showModal('receive-modal')">
+                    <div class="action-button-circle"><i class="fas fa-arrow-down"></i></div>
+                    <span class="action-button-label">Receive</span>
+                </div>
+                <div class="action-button" onclick="showModal('history-modal')">
+                    <div class="action-button-circle"><i class="fas fa-history"></i></div>
+                    <span class="action-button-label">History</span>
+                </div>
+                <div class="action-button disabled" id="more-btn">
+                    <div class="action-button-circle"><i class="fas fa-th-large"></i></div>
+                    <span class="action-button-label">More</span>
+                </div>
+            </div>
+
+            <div class="tab-container">
+                <div class="tab-button active">Crypto</div>
+                <div class="tab-button">NFT</div>
+                <div class="tab-button">DeFi</div>
+            </div>
+
+            <div class="asset-list">
+                <div class="assets-header">
+                    <span class="assets-header-text">Total assets</span>
+                    <span class="assets-header-value">$0.00</span>
+                </div>
+
+                <div class="asset-row">
+                    <div class="asset-icon-container"><span class="usdt-icon">₮</span></div>
+                    <div class="asset-text-container">
+                        <div class="asset-ticker">USDT</div>
+                        <div class="asset-price">$0.9998</div>
+                    </div>
+                    <div class="asset-change-container">
+                        <span class="asset-change positive-change">+1.56%</span>
+                    </div>
+                    <div class="asset-value-container">
+                        <div class="asset-balance">0.00</div>
+                        <div class="asset-value">$0.00</div>
+                    </div>
+                </div>
+                
+                <div class="asset-row">
+                    <div class="asset-icon-container"><i class="fab fa-ethereum eth-icon"></i></div>
+                    <div class="asset-text-container">
+                        <div class="asset-ticker">ETH</div>
+                        <div class="asset-price">$3,420.66</div>
+                    </div>
+                     <div class="asset-change-container">
+                        <span class="asset-change positive-change">+1.25%</span>
+                    </div>
+                    <div class="asset-value-container">
+                        <div class="asset-balance"></div>
+                        <div class="asset-value">$0.00</div>
+                    </div>
+                </div>
+
+                <div class="asset-row" style="border-bottom: none;">
+                    <div class="asset-icon-container"><i class="fab fa-btc btc-icon"></i></div>
+                    <div class="asset-text-container">
+                        <div class="asset-ticker">BTC</div>
+                        <div class="asset-price">$0.553316 BTC</div>
+                    </div>
+                    <div class="asset-change-container">
+                        <span class="asset-change positive-change">+2.28%</span>
+                    </div>
+                    <div class="asset-value-container">
+                        <div class="asset-balance">15,645.90</div>
+                        <div class="asset-value">$15,645.90</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="tokens-screen" class="screen">
+            <div class="market-list">
+                <input type="text" class="search-bar" placeholder="Search for tokens (e.g., BTC, BNB)">
+                <h3 class="market-list-title">Trending Markets</h3>
+                
+                <div class="token-row">
+                    <div class="token-icon"><i class="fab fa-btc btc-icon"></i></div>
+                    <div class="token-details">
+                        <div class="token-name">Bitcoin</div>
+                        <div class="token-ticker">BTC</div>
+                    </div>
+                    <div class="token-price-info">
+                        <div class="token-price">$104,706</div>
+                        <span class="asset-change positive-change">+2.28%</span>
+                    </div>
+                </div>
+
+                <div class="token-row">
+                    <div class="token-icon"><i class="fab fa-ethereum eth-icon"></i></div>
+                    <div class="token-details">
+                        <div class="token-name">Ethereum</div>
+                        <div class="token-ticker">ETH</div>
+                    </div>
+                    <div class="token-price-info">
+                        <div class="token-price">$3,420.66</div>
+                        <span class="asset-change positive-change">+1.25%</span>
+                    </div>
+                </div>
+                
+                <div class="token-row">
+                    <div class="token-icon" style="color: #627EEA;"><i class="fas fa-dollar-sign"></i></div>
+                    <div class="token-details">
+                        <div class="token-name">USDC</div>
+                        <div class="token-ticker">USDC</div>
+                    </div>
+                    <div class="token-price-info">
+                        <div class="token-price">$1.00</div>
+                        <span class="asset-change positive-change">+0.01%</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="earn-screen" class="screen">
+            <h2 class="earn-title">Earn Interest</h2>
+
+            <div class="earn-option-card">
+                <div class="earn-header">
+                    <span class="earn-coin-name">USDT Staking</span>
+                    <div class="earn-apr-info">
+                        <div class="earn-apr-label">APR</div>
+                        <div class="earn-apr">4.5%</div>
+                    </div>
+                </div>
+                <div class="earn-details">
+                    Lock up your USDT for a fixed period to earn passive income.
+                </div>
+            </div>
+
+            <div class="earn-option-card">
+                <div class="earn-header">
+                    <span class="earn-coin-name">ETH Lending</span>
+                    <div class="earn-apr-info">
+                        <div class="earn-apr-label">APR</div>
+                        <div class="earn-apr">2.1%</div>
+                    </div>
+                </div>
+                <div class="earn-details">
+                    Lend your ETH securely to decentralized protocols.
+                </div>
+            </div>
+            
+             <div class="earn-option-card">
+                <div class="earn-header">
+                    <span class="earn-coin-name">BTC Savings</span>
+                    <div class="earn-apr-info">
+                        <div class="earn-apr-label">APR</div>
+                        <div class="earn-apr">1.5%</div>
+                    </div>
+                </div>
+                <div class="earn-details">
+                    Flexible savings option for your Bitcoin.
+                </div>
+            </div>
+        </div>
+        
+        <div id="discover-screen" class="screen">
+            <h2 class="discover-title">Discover</h2>
+            
+            <div class="discover-section">
+                <h3 class="discover-section-title">Latest Crypto News</h3>
+                
+                <div class="news-article">
+                    <div class="news-headline">BTC ETF Flow Hits All-Time High</div>
+                    <div class="news-source">CoinDesk • 2 hours ago</div>
+                </div>
+                
+                <div class="news-article">
+                    <div class="news-headline">Ethereum's Dencun Upgrade is Live</div>
+                    <div class="news-source">The Block • 5 hours ago</div>
+                </div>
+                
+                <div class="news-article">
+                    <div class="news-headline">DeFi Protocol X Launches V3 Farming</div>
+                    <div class="news-source">Decrypt • 1 day ago</div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchScreen('home')">
+            <i class="fas fa-wallet"></i>
+            <span class="nav-text">Wallet</span>
+        </div>
+        <div class="nav-item" onclick="switchScreen('tokens')">
+            <i class="fas fa-chart-line"></i>
+            <span class="nav-text">Markets</span>
+        </div>
+        <div class="trade-button-placeholder"></div>
+        <div class="nav-item" onclick="switchScreen('earn')">
+            <i class="fas fa-money-bill-wave"></i>
+            <span class="nav-text">Earn</span>
+        </div>
+        <div class="nav-item" onclick="switchScreen('discover')">
+            <i class="fas fa-compass"></i>
+            <span class="nav-text">Discover</span>
+        </div>
+        
+        <div class="trade-button">
+            <i class="fas fa-exchange-alt"></i>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal-overlay" id="receive-modal" onclick="hideModal('receive-modal')">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-title">Receive Funds</div>
+        
+        <div class="address-row">
+            <div class="address-coin">Bitcoin (BTC) Address</div>
+            <div class="address-text">1J593uDXu1n5atWUfQaeVtfE4G5dFoEP5K</div>
+        </div>
+        
+        <div class="address-row">
+            <div class="address-coin">Ethereum (ETH) Address</div>
+            <div class="address-text">0xAB12...CD34</div>
+        </div>
+        
+        <div class="address-row">
+            <div class="address-coin">Solana (SOL) Address</div>
+            <div class="address-text">SOL1...ABC9</div>
+        </div>
+
+        <div class="modal-close-button" onclick="hideModal('receive-modal')">Close</div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="history-modal" onclick="hideModal('history-modal')">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-title">Transaction History</div>
+        
+        <div class="no-history-text">No recent transactions.</div>
+
+        <div class="modal-close-button" onclick="hideModal('history-modal')">Close</div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="send-options-modal" onclick="hideModal('send-options-modal')">
+    <div class="modal-content" onclick="event.stopPropagation()" id="send-flow-modal-content">
+        
+        <div class="modal-page active" id="send-options-page">
+            <div class="modal-page-header" style="justify-content: space-between;">
+                <span class="modal-page-title">Choose Send Method</span>
+                <i class="fas fa-times" onclick="hideModal('send-options-modal')"></i>
+            </div>
+            
+            <div class="send-option" onclick="switchSendPage('external-wallet-page', 'Send to Wallet')">
+                <div class="send-icon-container"><i class="fas fa-external-link-alt"></i></div>
+                <div class="send-details">
+                    <div class="send-title">External Wallet</div>
+                    <div class="send-subtitle">Send crypto to any Bitcoin, Ethereum, or other blockchain address.</div>
+                </div>
+                <i class="fas fa-chevron-right"></i>
+            </div>
+            
+            <div class="send-option" style="opacity: 0.5; cursor: not-allowed;">
+                <div class="send-icon-container" style="background-color: var(--color-light-gray);"><i class="fas fa-users"></i></div>
+                <div class="send-details">
+                    <div class="send-title">Internal Transfer (Unavailable)</div>
+                    <div class="send-subtitle">Send crypto to another Stosh's Wallet user (Currently unavailable).</div>
+                </div>
+                <i class="fas fa-chevron-right"></i>
+            </div>
+            
+            <div class="send-option" onclick="switchSendPage('link-card-page', 'Send to Card')">
+                <div class="send-icon-container"><i class="fas fa-credit-card"></i></div>
+                <div class="send-details">
+                    <div class="send-title">Linked Bank Card</div>
+                    <div class="send-subtitle">Sell crypto for pounds (GBP) and instantly transfer to your card.</div>
+                </div>
+                <i class="fas fa-chevron-right"></i>
+            </div>
+
+            <div class="modal-close-button" onclick="hideModal('send-options-modal')">Cancel</div>
+        </div>
+        
+        <div class="modal-page" id="external-wallet-page">
+            <div class="modal-page-header">
+                <i class="fas fa-arrow-left" onclick="goBackSend()"></i>
+                <span class="modal-page-title">Send to Wallet</span>
+            </div>
+            <p style="color: var(--color-light-gray); margin-bottom: 25px;">Enter the recipient address and choose the coin/network.</p>
+
+            <div class="form-group">
+                <label for="ext-coin">Select Coin</label>
+                <input type="text" id="ext-coin" value="Bitcoin (BTC)" readonly>
+            </div>
+            
+            <div class="form-group">
+                <label for="ext-network">Select Network</label>
+                <input type="text" id="ext-network" placeholder="e.g., BTC, Lightning, BEP20" value="Bitcoin" readonly>
+            </div>
+            
+            <div class="form-group">
+                <label for="ext-address">Recipient Address</label>
+                <input type="text" id="ext-address" placeholder="Paste or scan address">
+            </div>
+            
+            <div class="form-group">
+                <label for="ext-amount">Amount (BTC)</label>
+                <input type="number" id="ext-amount" placeholder="0.00">
+            </div>
+            
+            <button class="modal-close-button" onclick="showAlert('Placeholder', 'Wallet submission logic would go here. Click OK to return.', 'OK', goBackSend, false)">Next</button>
+        </div>
+        
+        <div class="modal-page" id="link-card-page">
+            <div class="modal-page-header">
+                <i class="fas fa-arrow-left" onclick="goBackSend()"></i>
+                <span class="modal-page-title">Add Bank Card Details</span>
+            </div>
+            <p style="color: var(--color-light-gray); margin-bottom: 25px;">The amount will be converted from crypto to pounds and transferred to this card.</p>
+            
+            <div class="form-group">
+                <label for="card-holder">Card Holder Name</label>
+                <input type="text" id="card-holder" placeholder="John Doe">
+            </div>
+            
+            <div class="form-group">
+                <label for="card-number">Card Number</label>
+                <input type="text" id="card-number" placeholder="XXXX XXXX XXXX XXXX" maxlength="19" onkeyup="checkCardType()">
+            </div>
+
+            <div style="display: flex; gap: 20px;">
+                <div class="form-group" style="flex: 1;">
+                    <label for="card-exp">Expiry Date (MM/YY)</label>
+                    <input type="text" id="card-exp" placeholder="MM/YY" maxlength="5">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label for="card-cvv">CVV</label>
+                    <input type="text" id="card-cvv" placeholder="CVV" maxlength="4">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="crypto-amount-send">Amount to Send (BTC)</label>
+                <input type="number" id="crypto-amount-send" value="0.01" placeholder="0.00">
+            </div>
+            
+            <button class="modal-close-button" onclick="goToCheckout()">Send to Card</button>
+        </div>
+        
+        <div class="modal-page" id="checkout-page">
+            <div class="modal-page-header">
+                <i class="fas fa-arrow-left" onclick="goBackSend()"></i>
+                <span class="modal-page-title">Review Transfer</span>
+            </div>
+            <p style="color: var(--color-light-gray); margin-bottom: 25px;">Confirm the amount and recipient details.</p>
+
+            <div class="card-details-row">
+                <div class="card-info">
+                    <img id="checkout-card-logo" src="https://via.placeholder.com/30x20?text=Card" alt="Card Logo" class="card-logo">
+                    <span id="checkout-card-type">Card Type</span>
+                </div>
+                <span id="checkout-card-last4">XXXX</span>
+            </div>
+            
+            <div style="margin-top: 20px; flex-grow: 1;">
+                <div class="checkout-row">
+                    <span class="label">Crypto Amount Sent</span>
+                    <span class="value" id="checkout-crypto-amount">0.01 BTC</span>
+                </div>
+                <div class="checkout-row">
+                    <span class="label">Exchange Rate</span>
+                    <span class="value" id="checkout-rate">1 BTC ≈ £80,000</span>
+                </div>
+                <div class="checkout-row">
+                    <span class="label">Amount to Receive (GBP)</span>
+                    <span class="value" id="checkout-gbp-receive">£800.00</span>
+                </div>
+            </div>
+            
+            <div class="checkout-total">
+                <span style="font-size: 14px; font-weight: 500; color: var(--color-light-gray);">Total Transfer:</span>
+                <span id="checkout-total-value">£800.00</span>
+            </div>
+            
+            <button class="modal-close-button" onclick="confirmTransfer()">Confirm Send</button>
+        </div>
+        
+         <div class="modal-page" id="processing-page">
+             <div class="modal-page-header">
+                <i class="fas fa-arrow-left" onclick="goBackSend()"></i>
+                <span class="modal-page-title">Processing...</span>
+            </div>
+             <div class="transaction-spinner-container" style="flex-grow: 1;">
+                <div class="transaction-spinner"></div>
+                <p class="transaction-message" id="transaction-message">Processing Transaction...</p>
+             </div>
+             <button class="modal-close-button" style="opacity: 0; pointer-events: none;">...</button>
+        </div>
+    </div>
+</div>
+
+<div class="confirm-modal-overlay" id="alert-modal">
+    <div class="confirm-modal-content" onclick="event.stopPropagation()">
+        <div class="confirm-modal-title" id="alert-title"></div>
+        <p class="confirm-modal-text" id="alert-text"></p>
+        <div class="confirm-modal-actions">
+            <button class="btn-cancel" onclick="hideAlert()">Cancel</button>
+            <button class="btn-confirm" id="alert-confirm-btn">Confirm</button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    // Global state for multi-step modal navigation and data
+    let state = {
+        currentSendPage: 'send-options-page',
+        sendHistory: ['send-options-page'],
+        // Mock data
+        cryptoToSend: 0.01,
+        exchangeRate: 80000, // £ per BTC
+        conversionFee: 1505.16, // £1,505.16 as requested
+        cardDetails: {
+            number: '',
+            last4: 'XXXX',
+            type: 'Card Type',
+            logo: 'https://via.placeholder.com/30x20?text=Card'
+        },
+        recipientAddress: 'XXXX XXXX XXXX XXXX',
+        recipientName: 'Card Holder'
+    };
+
+    function switchScreen(screenId) {
+        const screens = document.querySelectorAll('.screen');
+        screens.forEach(screen => {
+            screen.classList.remove('active');
+        });
+        document.getElementById(`${screenId}-screen`).classList.add('active');
+        
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        // Activate the corresponding nav item (handle trade button separately)
+        const activeNavItem = document.querySelector(`.nav-item[onclick*="${screenId}"]`);
+        if (activeNavItem) {
+             activeNavItem.classList.add('active');
+        } else if (screenId === 'home') {
+            document.querySelector(`.nav-item[onclick*="home"]`).classList.add('active');
+        }
+    }
+    
+    function showModal(modalId) {
+        document.getElementById(modalId).classList.add('active');
+    }
+
+    function hideModal(modalId) {
+        document.getElementById(modalId).classList.remove('active');
+        // Reset the send flow history when the main modal is closed
+        if (modalId === 'send-options-modal') {
+             switchSendPage('send-options-page', 'Choose Send Method', true); // Reset to start page
+             state.sendHistory = ['send-options-page'];
+        }
+    }
+
+    // NEW: Function to navigate between pages within the 'Send' modal
+    function switchSendPage(pageId, title, reset = false) {
+        const pages = document.querySelectorAll('#send-flow-modal-content .modal-page');
+        pages.forEach(page => {
+            page.classList.remove('active');
+        });
+        document.getElementById(pageId).classList.add('active');
+        
+        state.currentSendPage = pageId;
+
+        if (!reset) {
+            // Update history (only push if not already the last item)
+            if (state.sendHistory[state.sendHistory.length - 1] !== pageId) {
+                state.sendHistory.push(pageId);
+            }
+        }
+    }
+    
+    // NEW: Function to handle back button within the 'Send' modal
+    function goBackSend() {
+        if (state.sendHistory.length > 1) {
+            state.sendHistory.pop(); // Remove current page
+            const prevPageId = state.sendHistory[state.sendHistory.length - 1]; // Get previous page
+
+            switchSendPage(prevPageId, '', true); // Go back, don't push to history again
+        } else {
+             // If on the first page of the flow, close the main modal
+             hideModal('send-options-modal');
+        }
+    }
+    
+    // NEW: Alert/Confirmation Modal Functions
+    function showAlert(title, message, confirmText = 'Confirm', onConfirm, showCancel = true) {
+        const modal = document.getElementById('alert-modal');
+        document.getElementById('alert-title').innerText = title;
+        document.getElementById('alert-text').innerText = message;
+        
+        const confirmBtn = document.getElementById('alert-confirm-btn');
+        confirmBtn.innerText = confirmText;
+        confirmBtn.onclick = function() {
+            hideAlert();
+            if (onConfirm) onConfirm();
+        };
+
+        const cancelBtn = modal.querySelector('.btn-cancel');
+        cancelBtn.style.display = showCancel ? 'inline-block' : 'none';
+        
+        modal.classList.add('active');
+    }
+
+    function hideAlert() {
+        document.getElementById('alert-modal').classList.remove('active');
+    }
+
+
+    // --- Card Transfer Flow Logic ---
+
+    // NEW: Card Type Detection and Logo
+    function checkCardType() {
+        const cardNumberInput = document.getElementById('card-number');
+        let cardNumber = cardNumberInput.value.replace(/\s/g, ''); // Remove spaces
+        
+        // Format input: add space every 4 digits
+        cardNumberInput.value = cardNumber.replace(/(\d{4})/g, '$1 ').trim();
+        
+        state.cardDetails.number = cardNumber;
+
+        // Simple card type detection (for visual effect)
+        let type = 'Card Type';
+        let logo = 'https://via.placeholder.com/30x20?text=Card';
+        
+        if (/^4/.test(cardNumber)) {
+            type = 'Visa';
+            logo = 'https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg'; // Mock Visa
+        } else if (/^5[1-5]/.test(cardNumber)) {
+            type = 'Mastercard';
+            logo = 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/MasterCard_Logo.svg/1200px-MasterCard_Logo.svg.png'; // Mock MC
+        } else if (/^3[47]/.test(cardNumber)) {
+            type = 'Amex';
+            logo = 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/American_Express_logo.svg/1200px-American_Express_logo.svg.png'; // Mock Amex
+        }
+        
+        state.cardDetails.type = type;
+        state.cardDetails.logo = logo;
+    }
+
+    // NEW: Link Card Screen -> Checkout Page
+    function goToCheckout() {
+        const cardNumber = document.getElementById('card-number').value.replace(/\s/g, '');
+        const cardHolder = document.getElementById('card-holder').value.trim();
+        const cryptoAmount = parseFloat(document.getElementById('crypto-amount-send').value);
+        
+        if (!cardHolder || cardNumber.length < 15 || document.getElementById('card-cvv').value.length < 3 || document.getElementById('card-exp').value.length !== 5 || isNaN(cryptoAmount) || cryptoAmount <= 0) {
+            showAlert("Validation Error", "Please ensure all card details and a valid crypto amount are entered.", "OK", null, false);
+            return;
+        }
+
+        // Update state with final details
+        state.cardDetails.last4 = cardNumber.slice(-4);
+        state.cryptoToSend = cryptoAmount;
+        
+        // Calculate received amount
+        const gbpReceive = state.cryptoToSend * state.exchangeRate;
+        
+        // Update Checkout Screen UI
+        document.getElementById('checkout-card-logo').src = state.cardDetails.logo;
+        document.getElementById('checkout-card-type').innerText = state.cardDetails.type;
+        document.getElementById('checkout-card-last4').innerText = 'ends in ' + state.cardDetails.last4;
+        document.getElementById('checkout-crypto-amount').innerText = state.cryptoToSend.toFixed(4) + ' BTC';
+        document.getElementById('checkout-rate').innerText = `1 BTC ≈ £${state.exchangeRate.toLocaleString()}`;
+        document.getElementById('checkout-gbp-receive').innerText = `£${gbpReceive.toFixed(2).toLocaleString()}`;
+        document.getElementById('checkout-total-value').innerText = `£${gbpReceive.toFixed(2).toLocaleString()}`;
+
+        // Move to checkout page
+        switchSendPage('checkout-page');
+    }
+    
+    // NEW: Checkout Page -> Confirmation Modal
+    function confirmTransfer() {
+        const gbpReceive = (state.cryptoToSend * state.exchangeRate).toFixed(2);
+
+        showAlert(
+            "Confirm Transaction", 
+            `Are you sure you want to sell ${state.cryptoToSend.toFixed(4)} BTC for £${gbpReceive.toLocaleString()} and transfer it to your ${state.cardDetails.type} card?`, 
+            "Confirm", 
+            startTransferSimulation
+        );
+    }
+    
+    // NEW: Start Transfer Simulation (Confirmation -> Processing)
+    function startTransferSimulation() {
+        switchSendPage('processing-page');
+        
+        const gbpReceive = (state.cryptoToSend * state.exchangeRate).toFixed(2);
+        const msgEl = document.getElementById('transaction-message');
+        
+        msgEl.innerText = `Transferring £${gbpReceive.toLocaleString()} to ${state.cardDetails.last4}...`;
+        
+        // Simulate transfer time (2 seconds)
+        setTimeout(() => {
+            // Trigger the final error after the spinner phase
+            showConversionFeeError();
+        }, 2000); 
+    }
+    
+    // NEW: Show Final Error
+    function showConversionFeeError() {
+        // Final calculation for the alert
+        const gbpReceive = (state.cryptoToSend * state.exchangeRate);
+        const netReceive = gbpReceive - state.conversionFee;
+        
+        showAlert(
+            "Transaction Failed: Conversion Fee",
+            `The transfer of £${gbpReceive.toFixed(2).toLocaleString()} could not be completed. A non-negotiable conversion fee of £${state.conversionFee.toLocaleString()} is required, reducing your net amount to £${netReceive.toFixed(2).toLocaleString()}. Please adjust funds or try again.`,
+            "OK",
+            function() {
+                // When OK is clicked, go back to the card link screen
+                switchSendPage('link-card-page', 'Send to Card', true); 
+            },
+            false // Do not show cancel button
+        );
+    }
+</script>
+
+</body>
+</html>
+    
+  </body>
+  
+</html>
