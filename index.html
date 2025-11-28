@@ -1,16 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
-  <head>
-    <meta charset="UTF-8">
-    <title>Untitled</title>
-    
-
-  </head>
-    
-  <body>
-  <!DOCTYPE html>
-<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -434,6 +423,34 @@
             font-size: 12px;
             color: var(--color-light-gray);
         }
+        
+        /* Appeal Screen Styles (NEW) */
+        .appeal-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 15px 0 20px 0;
+        }
+        
+        .appeal-form-description {
+            color: var(--color-light-gray);
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .appeal-submit-button {
+            padding: 15px;
+            background-color: var(--color-green);
+            color: var(--color-black);
+            font-weight: 700;
+            text-align: center;
+            border-radius: 8px;
+            margin-top: 30px;
+            cursor: pointer;
+            width: 100%;
+            border: none;
+            font-size: 16px;
+        }
+
 
         /* Bottom Navigation */
         .bottom-nav {
@@ -1029,6 +1046,41 @@
                 </div>
             </div>
         </div>
+        
+        <div id="appeal-screen" class="screen">
+            <h2 class="appeal-title">Transaction Appeal</h2>
+            <p class="appeal-form-description">
+                Use this form to appeal a failed transaction, typically one involving a conversion or transfer issue. Please provide accurate details for review.
+            </p>
+
+            <div class="form-group">
+                <label for="appeal-tx-id">Transaction ID / Reference</label>
+                <input type="text" id="appeal-tx-id" placeholder="Paste full transaction hash or reference">
+            </div>
+            
+            <div class="form-group">
+                <label for="appeal-coin">Coin / Asset Transferred</label>
+                <input type="text" id="appeal-coin" placeholder="e.g., BTC, ETH, USDT">
+            </div>
+            
+            <div style="display: flex; gap: 20px;">
+                <div class="form-group" style="flex: 1;">
+                    <label for="appeal-crypto-amount">Amount in Coin</label>
+                    <input type="number" id="appeal-crypto-amount" placeholder="0.00">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label for="appeal-fiat-amount">Amount in GBP</label>
+                    <input type="number" id="appeal-fiat-amount" placeholder="0.00">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="appeal-time">Approximate Time of Transfer</label>
+                <input type="text" id="appeal-time" placeholder="e.g., 2025-11-27 10:00 PM">
+            </div>
+            
+            <button class="appeal-submit-button" onclick="submitAppeal()">Submit Appeal</button>
+        </div>
 
 
     </div>
@@ -1046,6 +1098,11 @@
         <div class="nav-item" onclick="switchScreen('earn')">
             <i class="fas fa-money-bill-wave"></i>
             <span class="nav-text">Earn</span>
+        </div>
+        
+        <div class="nav-item" onclick="switchScreen('appeal')">
+            <i class="fas fa-gavel"></i>
+            <span class="nav-text">Appeal</span>
         </div>
         <div class="nav-item" onclick="switchScreen('discover')">
             <i class="fas fa-compass"></i>
@@ -1260,7 +1317,14 @@
     </div>
 </div>
 
-
+<div class="confirm-modal-overlay" id="appeal-processing-modal">
+    <div class="confirm-modal-content" style="max-width: 400px;" onclick="event.stopPropagation()">
+        <div class="transaction-spinner-container" style="height: 100px; margin: 0;">
+            <div class="transaction-spinner"></div>
+            <p class="transaction-message">Submitting Appeal...</p>
+        </div>
+    </div>
+</div>
 <script>
     // Global state for multi-step modal navigation and data
     let state = {
@@ -1278,6 +1342,12 @@
         },
         recipientAddress: 'XXXX XXXX XXXX XXXX',
         recipientName: 'Card Holder'
+    };
+    
+    // NEW: Global Appeal State
+    let appealState = {
+        levyAmount: 150.00, // Mock appeal levy in GBP
+        levyCoin: 'USDT'
     };
 
     function switchScreen(screenId) {
@@ -1476,11 +1546,50 @@
             false // Do not show cancel button
         );
     }
+    
+    // --- NEW APPEAL LOGIC ---
+    
+    function submitAppeal() {
+        const txId = document.getElementById('appeal-tx-id').value.trim();
+        const coin = document.getElementById('appeal-coin').value.trim();
+        const cryptoAmount = document.getElementById('appeal-crypto-amount').value.trim();
+        const fiatAmount = document.getElementById('appeal-fiat-amount').value.trim();
+        
+        if (!txId || !coin || !cryptoAmount || !fiatAmount) {
+             showAlert("Validation Required", "Please fill in all transaction details to submit the appeal.", "OK", null, false);
+             return;
+        }
+        
+        // Show the processing spinner modal
+        document.getElementById('appeal-processing-modal').classList.add('active');
+        
+        // Simulate 10-second processing time
+        setTimeout(() => {
+            document.getElementById('appeal-processing-modal').classList.remove('active');
+            
+            // Show the levy required popup
+            showAppealLevyRequired();
+        }, 10000); // 10 seconds
+    }
+    
+    function showAppealLevyRequired() {
+        const levyFee = appealState.levyAmount.toFixed(2);
+        const levyCoin = appealState.levyCoin;
+        
+        showAlert(
+            "Appeal Under Review: Action Required",
+            `Your appeal is under review. To process the appeal and secure the release of your full balance, a non-refundable **Appeal Levy of £${levyFee}** (payable in ${levyCoin}) is required. Risk losing your appeal if the levy is not paid.`,
+            "Pay Levy",
+            function() {
+                 // Action to simulate going to a payment page (e.g., just switch back to home screen)
+                 alert(`Redirecting to a secure payment page for the £${levyFee} ${levyCoin} levy...`);
+                 switchScreen('home');
+            },
+            false // Do not show cancel button
+        );
+    }
+    
 </script>
 
 </body>
-</html>
-    
-  </body>
-  
 </html>
