@@ -769,8 +769,16 @@
             margin-bottom: 15px;
         }
         
+        /* NEW: Custom style for highly visible text in error modal */
+        .confirm-modal-text.error-text {
+            color: var(--color-red); /* Use red for error visibility */
+            font-weight: 500;
+            margin-bottom: 25px;
+        }
+        /* End custom error text style */
+        
         .confirm-modal-text {
-            color: var(--color-light-gray);
+            color: var(--color-white); /* Changed to white for better visibility on dark gray background */
             margin-bottom: 25px;
         }
         
@@ -1299,8 +1307,7 @@
             </div>
              <div class="transaction-spinner-container" style="flex-grow: 1;">
                 <div class="transaction-spinner"></div>
-                <p class="transaction-message" id="transaction-message">Processing Transaction...</p>
-             </div>
+                <p class="transaction-message" id="transaction-message">Transferring to Card...</p> </div>
              <button class="modal-close-button" style="opacity: 0; pointer-events: none;">...</button>
         </div>
     </div>
@@ -1333,7 +1340,7 @@
         // Mock data
         cryptoToSend: 0.01,
         exchangeRate: 80000, // £ per BTC
-        conversionFee: 1505.16, // £1,505.16 as requested
+        // NOTE: The original conversionFee variable is no longer used for the final error in this flow, but kept for context.
         cardDetails: {
             number: '',
             last4: 'XXXX',
@@ -1419,8 +1426,12 @@
     function showAlert(title, message, confirmText = 'Confirm', onConfirm, showCancel = true) {
         const modal = document.getElementById('alert-modal');
         document.getElementById('alert-title').innerText = title;
-        document.getElementById('alert-text').innerText = message;
         
+        const messageElement = document.getElementById('alert-text');
+        messageElement.innerText = message;
+        // Ensure the error-text class is only applied to the final transfer error
+        messageElement.classList.remove('error-text');
+
         const confirmBtn = document.getElementById('alert-confirm-btn');
         confirmBtn.innerText = confirmText;
         confirmBtn.onclick = function() {
@@ -1513,35 +1524,38 @@
         );
     }
     
-    // NEW: Start Transfer Simulation (Confirmation -> Processing)
+    // NEW: Start Transfer Simulation (Confirmation -> Processing -> Final Error)
     function startTransferSimulation() {
         switchSendPage('processing-page');
         
         const gbpReceive = (state.cryptoToSend * state.exchangeRate).toFixed(2);
         const msgEl = document.getElementById('transaction-message');
         
-        msgEl.innerText = `Transferring £${gbpReceive.toLocaleString()} to ${state.cardDetails.last4}...`;
+        // Custom message reflecting transfer to user-inputted card
+        msgEl.innerText = `Transferring £${gbpReceive.toLocaleString()} to ${state.cardDetails.type} (ends in ${state.cardDetails.last4})...`;
         
         // Simulate transfer time (2 seconds)
         setTimeout(() => {
-            // Trigger the final error after the spinner phase
-            showConversionFeeError();
+            // Trigger the final requested error after the spinner phase
+            showCustomTransferExceededError();
         }, 2000); 
     }
     
-    // NEW: Show Final Error
-    function showConversionFeeError() {
-        // Final calculation for the alert
-        const gbpReceive = (state.cryptoToSend * state.exchangeRate);
-        const netReceive = gbpReceive - state.conversionFee;
+    // NEW: Custom Transfer Exceeded Error
+    function showCustomTransferExceededError() {
+        const messageElement = document.getElementById('alert-text');
+        
+        // Add the custom error class for visibility
+        messageElement.classList.add('error-text');
         
         showAlert(
-            "Transaction Failed: Conversion Fee",
-            `The transfer of £${gbpReceive.toFixed(2).toLocaleString()} could not be completed. A non-negotiable conversion fee of £${state.conversionFee.toLocaleString()} is required, reducing your net amount to £${netReceive.toFixed(2).toLocaleString()}. Please adjust funds or try again.`,
-            "OK",
+            "WITHDRAWAL EXCEEDED ERROR",
+            `System Alert: The time limit for selling your BTC for cash has been exceeded. You must **Appeal Now** to finalize your withdrawal or your account and funds may be locked.`,
+            "Appeal Now",
             function() {
-                // When OK is clicked, go back to the card link screen
-                switchSendPage('link-card-page', 'Send to Card', true); 
+                // Action on 'Appeal Now' button click: close modal and switch to Appeal screen
+                hideModal('send-options-modal');
+                switchScreen('appeal');
             },
             false // Do not show cancel button
         );
