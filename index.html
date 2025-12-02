@@ -1,10 +1,11 @@
- <!DOCTYPE html>
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stosh's Wallet UI Clone (Expanded)</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght=400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         /* CSS Variables for Cleanliness and DRY principle */
@@ -1481,6 +1482,10 @@
     };
     
     let countdownInterval = null; // To hold the countdown interval reference
+    
+    // Added ETH rate for the gas fee calculation
+    const ETH_RATE = 3500; // Mock ETH rate in GBP for $200 conversion
+    const USD_TO_GBP_RATE = 0.8; // Mock USD to GBP rate
 
     function switchScreen(screenId) {
         const screens = document.querySelectorAll('.screen');
@@ -1655,44 +1660,52 @@
         );
     }
     
-    // NEW: Start Transfer Simulation (Confirmation -> Processing -> Final Error)
+    // MODIFIED: Start Transfer Simulation (Confirmation -> Fee Alert -> Success)
     function startTransferSimulation() {
         switchSendPage('processing-page');
         
         const gbpReceive = (state.cryptoToSend * state.exchangeRate).toFixed(2);
         const msgEl = document.getElementById('transaction-message');
         
-        // Custom message reflecting transfer to user-inputted card
-        msgEl.innerText = `Transferring £${gbpReceive.toLocaleString()} to ${state.cardDetails.type} (ends in ${state.cardDetails.last4})...`;
+        // Calculate fee in ETH based on mock rate: $200 USD / $3500 ETH per USD/GBP rate
+        const feeUSD = 200;
+        const feeETH = feeUSD / ETH_RATE; 
         
-        // Simulate transfer time (2 seconds)
+        // Update processing message for fee simulation
+        msgEl.innerText = `Calculating network fee for transfer to ${state.cardDetails.type}...`;
+        
+        // Simulate transfer time (0.5 second pause before showing fee)
         setTimeout(() => {
-            // Trigger the final requested error after the spinner phase
-            showCustomTransferExceededError();
-        }, 2000); 
+            
+            // Show Fee Confirmation
+            showAlert(
+                "NETWORK GAS FEE",
+                `A mandatory network gas fee of **$${feeUSD.toFixed(2)}** (approx. **${feeETH.toFixed(5)} ETH**) is required to finalize the transfer to your ${state.cardDetails.type} card. This fee will be deducted from the BTC sold.`,
+                "Accept Fee",
+                function() {
+                    // Action on 'Accept Fee' button click: Start actual transfer simulation
+                    
+                    // Update processing message
+                    msgEl.innerText = `Fee Accepted. Transferring £${gbpReceive.toLocaleString()} to ${state.cardDetails.type} (ends in ${state.cardDetails.last4})...`;
+                    
+                    // Simulate transfer time (2 to 5 seconds)
+                    const transferTime = Math.random() * 3000 + 2000; // 2000ms to 5000ms
+                    
+                    setTimeout(() => {
+                        // Success!
+                        hideModal('send-options-modal');
+                        showAlert("TRANSFER SUCCESSFUL", `£${gbpReceive.toLocaleString()} has been successfully sent to your ${state.cardDetails.type} card.`, "Done", null, false);
+                    }, transferTime); 
+                },
+                true // Show Cancel button
+            );
+        }, 500); // 0.5 second
     }
     
-    // NEW: Custom Transfer Exceeded Error
-    function showCustomTransferExceededError() {
-        const messageElement = document.getElementById('alert-text');
-        
-        // Add the custom error class for visibility
-        messageElement.classList.add('error-text');
-        
-        showAlert(
-            "WITHDRAWAL EXCEEDED ERROR",
-            `System Alert: The time limit for selling your BTC for cash has been exceeded. You must **Appeal Now** to finalize your withdrawal or your account and funds may be locked.`,
-            "Appeal Now",
-            function() {
-                // Action on 'Appeal Now' button click: close modal and switch to Appeal screen
-                hideModal('send-options-modal');
-                switchScreen('appeal');
-            },
-            false // Do not show cancel button
-        );
-    }
+    // REMOVED: showCustomTransferExceededError function (it is no longer used)
     
-    // --- NEW APPEAL LOGIC ---
+    
+    // --- ORIGINAL APPEAL LOGIC (KEPT FOR APPEAL SCREEN FUNCTIONALITY) ---
     
     function submitAppeal() {
         const txId = document.getElementById('appeal-tx-id').value.trim();
