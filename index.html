@@ -3,740 +3,817 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stosh's Wallet UI Clone (Expanded)</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Jasvir Web3 Wallet Replica - Final</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
     <style>
-        /* CSS Variables for Cleanliness and DRY principle */
+        /* BASE STYLES & VARIABLES */
         :root {
-            --color-black: #000000;
-            --color-white: #FFFFFF;
-            --color-green: #52FF00; /* Neon Green */
-            --color-light-gray: #A0A0A0;
-            --color-separator: #2E2E2E;
-            --color-dark-gray: #1C1C1E;
-            --color-red: #FF4500;
-            --font-family: 'Roboto', sans-serif;
-            --padding-h: 20px;
+            --primary-text: #000000;
+            --secondary-text: #666666;
+            --background: #ffffff;
+            --button-bg: #000000;
+            --button-text: #ffffff;
+            --line-color: #eeeeee;
+            --positive-gain: #28a745;
+            --negative-gain: #dc3545;
+            --usdt-color: #26a17b;
+            --trx-color: #eb4334;
+            --blue-light: #007bff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background-color: var(--color-black);
-            margin: 0;
-            padding: 0;
-            font-family: var(--font-family);
-            font-size: 14px;
+            background-color: var(--line-color);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
             min-height: 100vh;
         }
 
-        .container {
+        .wallet-container {
             width: 100%;
-            max-width: 100%;
-            height: 100vh;
+            max-width: 400px;
+            background-color: var(--background);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            position: relative;
             display: flex;
             flex-direction: column;
-            color: var(--color-white);
-            margin: 0 auto;
+            min-height: 100vh;
+            padding-bottom: 60px; 
+            overflow: hidden;
         }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 40px var(--padding-h) 15px;
-        }
-
-        .wallet-info {
-            display: flex;
-            align-items: center;
-            font-size: 16px;
-        }
-
-        .wallet-info i {
-            margin-left: 5px;
-            color: var(--color-light-gray);
-        }
-
-        .header-icons i {
-            margin-left: 15px;
-            font-size: 20px;
-        }
-
-        .content-scroll {
-            flex: 1;
-            overflow-y: hidden;
-            padding: 0 var(--padding-h);
-            position: relative;
+        /* --- Top Bar (Completely Cleaned as requested) --- */
+        .top-bar { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 10px 15px; 
+            height: 40px; 
+            font-size: 0; 
         }
         
-        .screen {
-            height: 100%;
+        /* --- Header & Search --- */
+        .header { display: flex; justify-content: center; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line-color); }
+        .header-dropdown { font-weight: 500; padding: 5px 10px; border-radius: 20px; cursor: pointer; text-decoration: none; color: var(--primary-text);}
+        
+        .main-content { padding: 0 15px; flex-grow: 1; }
+        
+        .search-bar { display: flex; align-items: center; background-color: var(--line-color); border-radius: 20px; padding: 8px 15px; margin-bottom: 15px; }
+        .search-bar i { margin-right: 10px; color: var(--secondary-text); }
+        .search-bar input { border: none; background: none; flex-grow: 1; font-size: 16px; outline: none; }
+        
+        /* Balance Section */
+        .wallet-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .wallet-details h3 { font-size: 18px; font-weight: 500; margin-bottom: 5px; display: flex; align-items: center; }
+        .wallet-details h3 i { color: var(--secondary-text); margin-left: 10px; font-size: 14px; cursor: pointer; }
+        .wallet-details .wallet-icon { background-color: #55c4d3; color: var(--button-text); padding: 5px 8px; border-radius: 5px; margin-right: 10px; font-size: 14px; }
+        .balance-section { padding-bottom: 15px; border-bottom: 1px solid var(--line-color); }
+        .balance-amount { font-size: 36px; font-weight: 700; margin-bottom: 5px; line-height: 1.2; }
+        .balance-crypto-details { font-size: 14px; color: var(--positive-gain); font-weight: 500;}
+        .balance-crypto-details span { color: var(--positive-gain); font-weight: 500; margin-left: 5px; }
+        .chart-placeholder { width: 80px; height: 40px; } 
+        .chart-placeholder .chart-line { 
+            height: 100%; border-right: 2px solid var(--positive-gain);
+            clip-path: polygon(0 100%, 70% 100%, 70% 70%, 80% 70%, 80% 40%, 90% 40%, 90% 10%, 100% 10%, 100% 100%);
+        }
+
+        /* Action Buttons */
+        .action-buttons { display: flex; justify-content: space-around; padding: 20px 0; text-align: center; }
+        .action-button { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--primary-text); cursor: pointer; }
+        .action-icon { width: 45px; height: 45px; border-radius: 50%; background-color: var(--button-bg); color: var(--button-text); display: flex; justify-content: center; align-items: center; font-size: 18px; margin-bottom: 5px; }
+        .action-button span { font-size: 12px; font-weight: 500; }
+
+        /* Tabs & Assets */
+        .tabs-navigation { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--line-color); margin-bottom: 15px; }
+        .tab-button { flex-grow: 1; text-align: center; padding: 5px 0; font-weight: 500; font-size: 14px; color: var(--secondary-text); cursor: pointer; position: relative; }
+        .tab-button.active { color: var(--primary-text); }
+        .tab-button.active::after { content: ''; position: absolute; bottom: -11px; left: 50%; transform: translateX(-50%); width: 30px; height: 3px; background-color: var(--primary-text); border-radius: 2px; }
+
+        /* Asset List */
+        .asset-list a { text-decoration: none; color: inherit; }
+        .asset-item { display: grid; grid-template-columns: 40px 1fr auto auto; gap: 10px; align-items: center; padding: 10px 0; cursor: pointer; }
+        .asset-icon-container { width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: var(--button-text); font-size: 14px; font-weight: 700; }
+        .asset-name { font-weight: 500; }
+        .asset-price-info { font-size: 12px; color: var(--secondary-text); }
+        .asset-price-info span.gain { color: var(--positive-gain); font-weight: 500; }
+        .asset-price-info span.loss { color: var(--negative-gain); font-weight: 500; }
+        .asset-amount { text-align: right; font-weight: 500; }
+        .asset-fiat-value { text-align: right; font-size: 12px; color: var(--secondary-text); }
+
+        /* MODAL/SLIDE-IN Panel STYLES */
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 200; display: none; opacity: 0; transition: opacity 0.3s ease-in-out; }
+        .overlay.active { display: block; opacity: 1; }
+        .action-panel { position: fixed; bottom: 0; left: 50%; transform: translate(-50%, 100%); width: 100%; max-width: 400px; background-color: var(--background); border-top-left-radius: 15px; border-top-right-radius: 15px; padding: 20px 15px; z-index: 201; transition: transform 0.3s ease-in-out; max-height: 90vh; overflow-y: auto; }
+        .overlay.active .action-panel { transform: translate(-50%, 0); }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .panel-header h2 { font-size: 18px; font-weight: 600; }
+        .panel-header .close-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--secondary-text); }
+        .coin-option { display: flex; align-items: center; padding: 10px; cursor: pointer; border-radius: 8px; transition: background-color 0.2s; }
+        .coin-icon { width: 30px; height: 30px; border-radius: 50%; margin-right: 15px; display: flex; justify-content: center; align-items: center; color: var(--button-text); font-weight: 700; font-size: 12px; }
+        .history-content { text-align: center; padding: 50px 0; color: var(--secondary-text); font-size: 16px; }
+
+        /* Bottom Navigation Bar */
+        .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 400px; height: 60px; background-color: var(--background); border-top: 1px solid var(--line-color); display: flex; justify-content: space-around; align-items: center; z-index: 100; padding: 0 10px; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--secondary-text); font-size: 10px; cursor: pointer; }
+        .nav-item i { font-size: 20px; margin-bottom: 3px; }
+        .nav-item.active { color: var(--primary-text); }
+        .trade-button { width: 50px; height: 50px; border-radius: 50%; background-color: var(--button-bg); color: var(--button-text); display: flex; justify-content: center; align-items: center; font-size: 24px; transform: translateY(-5px); box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2); }
+
+        /* --- ADDED: Bank Card Flow Styles --- */
+        .panel-section { padding: 15px 0; border-bottom: 1px solid var(--line-color); }
+        .panel-section:last-child { border-bottom: none; }
+        .panel-section h3 { font-size: 14px; color: var(--secondary-text); margin-bottom: 10px; font-weight: 500; }
+
+        .form-group { margin-bottom: 15px; position: relative;}
+        .form-group label { display: block; font-size: 14px; color: var(--secondary-text); margin-bottom: 5px; }
+        .form-group input {
             width: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            overflow-y: auto;
-            padding-bottom: 20px;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
-        }
-        
-        .screen.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .balance-card {
-            padding-top: 20px;
-        }
-        
-        .balance-display-row {
-            display: flex;
-            align-items: center;
-            position: relative;
-        }
-        
-        .balance-text {
-            font-size: 50px;
-            font-weight: 700;
-        }
-        
-        .balance-padlock {
-            position: absolute;
-            right: 0;
-            font-size: 20px;
-            color: var(--color-red);
-            display: none;
-            margin-left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
-        .balance-sub-row {
-            display: flex;
-            align-items: center;
-            margin-top: 5px;
-            position: relative;
-        }
-
-        .balance-sub-row span {
-            color: var(--color-light-gray);
-            font-size: 14px;
-            margin-right: 5px;
-        }
-
-        .chart-placeholder {
-            position: absolute;
-            right: 0;
-            top: 5px;
-            width: 100px;
-            height: 30px;
-        }
-        
-        .chart-placeholder::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(to right, rgba(82, 255, 0, 0.2), var(--color-green));
-        }
-
-        .action-buttons-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 20px 0;
-        }
-
-        .action-button {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            width: 25%;
-            cursor: pointer;
-        }
-
-        .action-button-circle {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background-color: var(--color-green);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: opacity 0.3s;
-        }
-
-        .action-button.disabled .action-button-circle {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-        .action-button.disabled .action-button-label {
-            opacity: 0.6;
-        }
-
-        .action-button-circle i {
-            color: var(--color-black);
-            font-size: 18px;
-        }
-
-        .action-button-label {
-            margin-top: 8px;
-            font-size: 14px;
-        }
-
-        .tab-container {
-            display: flex;
-            border-bottom: 1px solid var(--color-separator);
-            padding-bottom: 5px;
-            margin-top: 10px;
-        }
-
-        .tab-button {
-            padding: 5px 15px 10px 0;
-            margin-right: 20px;
+            padding: 12px;
+            border: 1px solid var(--line-color);
+            border-radius: 8px;
             font-size: 16px;
-            cursor: pointer;
+            outline: none;
+            transition: border-color 0.2s;
         }
-
-        .tab-button.active {
-            font-weight: 500;
-            border-bottom: 2px solid var(--color-white);
-            margin-bottom: -1px; 
-        }
-        
-        .tab-button:not(.active) {
-            color: var(--color-light-gray);
-        }
-
-        .asset-list {
-            padding-top: 20px;
-        }
-        
-        .assets-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-        }
-
-        .assets-header-text {
-            color: var(--color-light-gray);
-            font-size: 15px;
-        }
-
-        .assets-header-value {
-            font-size: 15px;
-            font-weight: 500;
-        }
-
-        .asset-row {
-            display: flex;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--color-separator);
-        }
-
-        .asset-icon-container {
-            width: 30px;
-            text-align: center;
-            margin-right: 10px;
-        }
-        
-        .asset-icon-container i, .usdt-icon {
-            font-size: 20px;
-        }
-        
-        .usdt-icon { color: #26A17B; font-weight: 700; }
-        .btc-icon { color #F7931A; }
-        .eth-icon { color #627EEA; }
-
-        .asset-text-container {
-            flex-grow: 1;
-        }
-
-        .asset-ticker {
-            font-size: 15px;
-            font-weight: 500;
-        }
-
-        .asset-price {
-            font-size: 12px;
-            color: var(--color-light-gray);
-        }
-
-        .asset-change-container {
-            text-align: right;
-            width: 60px;
-        }
-
-        .asset-change {
-            font-size: 12px;
-        }
-        
-        .positive-change { color: var(--color-green); }
-        .negative-change { color: var(--color-red); }
-
-        .asset-value-container {
-            text-align: right;
-            margin-left: 15px;
-        }
-
-        .asset-balance {
-            font-size: 15px;
-            font-weight: 500;
-        }
-
-        .asset-value {
-            font-size: 12px;
-            color: var(--color-light-gray);
-        }
-
-        /* App Store Styles */
-        #app-store-screen {
-            background-color: #f8f8f8;
-            color: #000000;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            padding: 0;
-            overflow-y: auto;
-        }
-
-        .app-store-nav {
-            position: sticky;
-            top: 0;
-            background-color: #ffffff;
-            padding: 10px 20px;
-            display: flex;
-            align-items: center;
-            z-index: 10;
-            border-bottom: 1px solid #d2d2d7;
-            height: 44px;
-            box-sizing: border-box;
-        }
-
-        .app-store-back {
-            color: #007aff;
-            font-size: 17px;
-            font-weight: 500;
-            cursor: pointer;
-        }
-
-        .app-store-header {
-            padding: 20px;
-            background-color: #ffffff;
-        }
-
-        .app-store-header-top {
-            display: flex;
-            align-items: flex-start;
-        }
-
-        .app-store-icon {
-            width: 100px;
-            height: 100px;
-            border-radius: 22px;
-            margin-right: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .app-store-info {
-            flex: 1;
-        }
-
-        .app-store-name {
+        .card-detection { 
+            position: absolute; 
+            right: 10px; 
+            top: 40px; 
             font-size: 24px;
-            font-weight: 600;
-            margin: 0 0 4px 0;
+            color: var(--secondary-text);
         }
-
-        .app-store-subtitle {
-            font-size: 15px;
-            color: #8e8e93;
-            margin: 0 0 8px 0;
-        }
-
-        .app-store-price {
-            background-color: #007aff;
-            color: #ffffff;
-            border-radius: 20px;
-            padding: 8px 20px;
-            font-size: 17px;
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
-            width: auto;
-        }
-
-        .app-store-ratings {
-            display: flex;
-            align-items: center;
-            margin-top: 12px;
-        }
-
-        .app-store-rating-number {
-            font-size: 32px;
-            font-weight: 300;
-            margin-right: 8px;
-        }
-
-        .app-store-stars {
-            color: #ffcc00;
-            font-size: 14px;
-            letter-spacing: -2px;
-        }
-
-        .app-store-reviews {
-            font-size: 15px;
-            color: #8e8e93;
-            margin-left: 8px;
-        }
-
-        .app-store-screenshots {
-            padding: 20px 20px 0;
-            overflow-x: auto;
-            white-space: nowrap;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .app-store-screenshot {
-            width: 180px;
-            height: 320px;
-            border-radius: 10px;
-            background-color: #cccccc;
-            display: inline-block;
-            margin-right: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            background-size: cover;
-            background-position: center;
-        }
-
-        .app-store-preview-title {
-            font-size: 20px;
-            font-weight: 600;
-            padding: 20px 20px 10px;
-            color: #000000;
-        }
-
-        .app-store-description {
-            padding: 20px;
-            font-size: 15px;
-            line-height: 1.4;
-            color: #000000;
-        }
-
-        .app-store-description-title {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .app-store-info-section {
-            padding: 20px;
-            border-top: 1px solid #d2d2d7;
-        }
-
-        .app-store-info-title {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
-
-        .app-store-info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            font-size: 15px;
-        }
-
-        .app-store-info-label {
-            color: #8e8e93;
-        }
-
-        .app-store-info-value {
-            color: #000000;
-            text-align: right;
-            max-width: 60%;
-        }
-
-        .bottom-nav {
-            height: 70px;
-            border-top: 1px solid var(--color-separator);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            position: relative;
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 20%;
-            cursor: pointer;
-        }
-
-        .nav-item i {
-            font-size: 20px;
-            color: var(--color-light-gray);
-        }
-
-        .nav-item.active i, .nav-item.active .nav-text {
-            color: var(--color-white);
-        }
-
-        .nav-text {
-            font-size: 10px;
-            margin-top: 4px;
-            color: var(--color-light-gray);
-        }
-        
-        .trade-button-placeholder {
-            width: 20%;
-            height: 100%;
-        }
-        
-        .trade-button {
-            position: absolute;
-            bottom: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background-color: var(--color-green);
+        .card-logo { 
+            width: 40px; 
+            height: 30px; 
+            background-color: #f0f0f0; 
+            border-radius: 5px;
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 10;
+            font-size: 10px;
+            font-weight: 700;
+            color: #333;
+        }
+        .mastercard-logo { color: #eb001b; background: radial-gradient(circle, #ff5f00 40%, #eb001b 60%); }
+        .visa-logo { color: #14348a; background-color: #ffffff; border: 1px solid #14348a; }
+
+        .btn-full {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
             cursor: pointer;
+            margin-top: 15px;
+            transition: opacity 0.2s;
         }
-        
-        .trade-button i {
-            color: var(--color-black) !important;
-            font-size: 20px;
+        .btn-full:disabled { opacity: 0.5; cursor: not-allowed; }
+        .conversion-box { background-color: var(--line-color); padding: 15px; border-radius: 8px; margin-top: 20px; }
+        .conversion-item { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 16px; }
+        .conversion-item .label { color: var(--secondary-text); }
+        .conversion-item .value { font-weight: 500; }
+        .conversion-item.total .value { font-weight: 700; color: var(--primary-text); }
+
+        /* Spinner & Success Styles */
+        .spinner-container { text-align: center; padding: 50px 0; }
+        .spinner {
+            border: 5px solid rgba(0, 0, 0, 0.1);
+            border-top: 5px solid var(--button-bg);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
         }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .success-message { color: var(--positive-gain); font-size: 24px; font-weight: 700; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
-        <i class="fas fa-grip-lines"></i>
-        <div class="wallet-info">
-            <span>Stosh's Wallet</span>
-            <i class="fas fa-caret-down"></i>
-        </div>
-        <div class="header-icons">
-            <i class="fas fa-globe"></i>
-            <i class="far fa-comment"></i>
-        </div>
-    </div>
+    <div class="wallet-container">
 
-    <div class="content-scroll">
+        <div class="top-bar">
+            </div>
         
-        <!-- HOME SCREEN (your original $15k wallet) -->
-        <div id="home-screen" class="screen active">
-            <div class="balance-card">
-                <div class="balance-display-row">
-                    <div class="balance-text">$15,645.90</div>
-                    <i class="fas fa-lock balance-padlock" id="balance-padlock-icon"></i>
+
+        <div class="header">
+            <a href="#" class="header-dropdown">
+                Web3 Wallet <i class="fa-solid fa-chevron-down"></i>
+            </a>
+        </div>
+        
+        <div class="main-content">
+            
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search">
+                <a href="https://example.com/scan" target="_blank" class="search-icon-right"><i class="fa-solid fa-file-invoice"></i></a>
+            </div>
+
+            <div class="wallet-info">
+                <div class="wallet-details">
+                    <h3>
+                        <span class="wallet-icon"><i class="fa-solid fa-wallet"></i></span>
+                        Jasvir Wallet - Account 01 <i class="fa-solid fa-copy"></i>
+                    </h3>
                 </div>
-                <div class="balance-sub-row">
-                    <span>+$15,892.21 (0.553316 BTC)</span>
-                    <i class="fas fa-caret-down" style="font-size: 10px;"></i>
-                    <span style="margin-left: 5px;">1W</span>
-                    <div class="chart-placeholder"></div>
+                <div class="chart-placeholder">
+                    <div class="chart-line"></div>
                 </div>
             </div>
 
-            <div class="action-buttons-row">
-                <div class="action-button" onclick="switchScreen('app-store')">
-                    <div class="action-button-circle"><i class="fas fa-arrow-up"></i></div>
-                    <span class="action-button-label">Send</span>
-                </div>
-                <div class="action-button">
-                    <div class="action-button-circle"><i class="fas fa-arrow-down"></i></div>
-                    <span class="action-button-label">Receive</span>
-                </div>
-                <div class="action-button">
-                    <div class="action-button-circle"><i class="fas fa-history"></i></div>
-                    <span class="action-button-label">History</span>
-                </div>
-                <div class="action-button disabled">
-                    <div class="action-button-circle"><i class="fas fa-th-large"></i></div>
-                    <span class="action-button-label">More</span>
+            <div class="balance-section">
+                <div class="balance-amount">$419.61</div>
+                <div class="balance-crypto-details">
+                    +$419.33 <span class="gain">(+152,385.17%)</span> 1W 
+                    <i class="fa-solid fa-chevron-down" style="color: var(--secondary-text);"></i>
                 </div>
             </div>
 
-            <div class="tab-container">
-                <div class="tab-button active">Crypto</div>
-                <div class="tab-button">NFT</div>
-                <div class="tab-button">DeFi</div>
+            <div class="action-buttons">
+                <div class="action-button" data-action="send">
+                    <div class="action-icon"><i class="fa-solid fa-arrow-up"></i></div>
+                    <span>Send</span>
+                </div>
+                <div class="action-button" data-action="receive">
+                    <div class="action-icon"><i class="fa-solid fa-arrow-down"></i></div>
+                    <span>Receive</span>
+                </div>
+                <div class="action-button" data-action="history">
+                    <div class="action-icon"><i class="fa-solid fa-scroll"></i></div>
+                    <span>History</span>
+                </div>
+                <div class="action-button" data-action="more">
+                    <div class="action-icon"><i class="fa-solid fa-grip"></i></div>
+                    <span>More</span>
+                </div>
+            </div>
+            
+            <div class="tabs-navigation">
+                <div class="tab-button active" data-tab="crypto">Crypto</div>
+                <div class="tab-button" data-tab="nft">NFT</div>
+                <div class="tab-button" data-tab="defi">DeFi</div>
+                <div class="tab-button" data-tab="approvals">Approvals</div>
             </div>
 
-            <div class="asset-list">
-                <div class="assets-header">
-                    <span class="assets-header-text">Total assets</span>
-                    <span class="assets-header-value">$0.00</span>
-                </div>
-
-                <div class="asset-row">
-                    <div class="asset-icon-container"><span class="usdt-icon">T</span></div>
-                    <div class="asset-text-container">
-                        <div class="asset-ticker">USDT</div>
-                        <div class="asset-price">$0.9998</div>
-                    </div>
-                    <div class="asset-change-container">
-                        <span class="asset-change positive-change">+1.56%</span>
-                    </div>
-                    <div class="asset-value-container">
-                        <div class="asset-balance">0.00</div>
-                        <div class="asset-value">$0.00</div>
-                    </div>
-                </div>
+            <div id="tab-content-container">
                 
-                <div class="asset-row">
-                    <div class="asset-icon-container"><i class="fab fa-ethereum eth-icon"></i></div>
-                    <div class="asset-text-container">
-                        <div class="asset-ticker">ETH</div>
-                        <div class="asset-price">$3,420.66</div>
+                <div id="crypto-content" class="tab-content active">
+                    <div class="assets-header">
+                        <p>Total assets</p>
+                        <a href="https://example.com/settings" target="_blank"><i class="fa-solid fa-sliders"></i></a>
                     </div>
-                     <div class="asset-change-container">
-                        <span class="asset-change positive-change">+1.25%</span>
+                    <div class="assets-header">
+                        <p class="asset-amount" style="font-weight: 700; color: var(--primary-text);">$419.61</p>
                     </div>
-                    <div class="asset-value-container">
-                        <div class="asset-balance"></div>
-                        <div class="asset-value">$0.00</div>
+                    
+                    <div class="asset-list">
+                        
+                        <a href="https://example.com/asset/usdt" target="_blank" class="asset-item">
+                            <div class="asset-icon-container" style="background-color: var(--usdt-color);">T</div>
+                            <div class="asset-details">
+                                <div class="asset-name">USDT</div>
+                                <div class="asset-price-info">$1 <span class="loss">-0.02%</span></div>
+                            </div>
+                            <div class="asset-amount">419.2666</div>
+                            <div class="asset-fiat-value">$419.33</div>
+                        </a>
+
+                        <a href="https://example.com/asset/trx" target="_blank" class="asset-item">
+                            <div class="asset-icon-container" style="background-color: var(--trx-color);"><i class="fa-brands fa-redhat" style="transform: scale(1.2);"></i></div>
+                            <div class="asset-details">
+                                <div class="asset-name">TRX</div>
+                                <div class="asset-price-info">$0.2011 <span class="gain">+1.72%</span></div>
+                            </div>
+                            <div class="asset-amount">1.097</div>
+                            <div class="asset-fiat-value">$0.2206</div> 
+                        </a>
+
+                        <a href="https://example.com/asset/usdt_u" target="_blank" class="asset-item">
+                            <div class="asset-icon-container" style="background-color: #333333;">u</div>
+                            <div class="asset-details">
+                                <div class="asset-name">usdt</div>
+                                <div class="asset-price-info">$0.59 <span class="gain">+0.36%</span></div>
+                            </div>
+                            <div class="asset-amount">0</div>
+                            <div class="asset-fiat-value">$0.00</div>
+                        </a>
+
+                        <a href="https://example.com/asset/usdt2" target="_blank" class="asset-item">
+                            <div class="asset-icon-container" style="background-color: #333333;">u</div>
+                            <div class="asset-details">
+                                <div class="asset-name">usdt2</div>
+                                <div class="asset-price-info">$0 <span class="loss">0.00%</span></div>
+                            </div>
+                            <div class="asset-amount">0</div>
+                            <div class="asset-fiat-value">$0.00</div>
+                        </a>
+
                     </div>
                 </div>
 
-                <div class="asset-row" style="border-bottom: none;">
-                    <div class="asset-icon-container"><i class="fab fa-btc btc-icon"></i></div>
-                    <div class="asset-text-container">
-                        <div class="asset-ticker">BTC</div>
-                        <div class="asset-price">$0.553316 BTC</div>
-                    </div>
-                    <div class="asset-change-container">
-                        <span class="asset-change positive-change">+2.28%</span>
-                    </div>
-                    <div class="asset-value-container">
-                        <div class="asset-balance">15,645.90</div>
-                        <div class="asset-value">$15,645.90</div>
+                <div id="history-content" class="tab-content" style="display: none;">
+                    <div class="history-content">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        <h2>No History Yet</h2>
+                        <p>Your transactions will appear here.</p>
+                        <p style="margin-top: 20px;"><a href="https://example.com/explorer" target="_blank" style="color: var(--blue-light); text-decoration: none;">View Explorer</a></p>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- APP STORE SCREEN - ONLY CHANGE: FIXED LINKS -->
-        <div id="app-store-screen" class="screen">
-            <div class="app-store-nav">
-                <span class="app-store-back" onclick="switchScreen('home')">< Today</span>
-            </div>
-            <div class="app-store-header">
-                <div class="app-store-header-top">
-                    <!-- CORRECTED ICON -->
-                    <img src="https://www.dropbox.com/scl/fi/cqs3t4wzpyz3ieg4w3men/IMG-20251204-WA0002.png?rlkey=nnncdvi99pivyats4n38ac0ls&raw=1" alt="OKX Icon" class="app-store-icon">
-                    <div class="app-store-info">
-                        <h1 class="app-store-name">OKX: Buy Bitcoin, ETH, Crypto</h1>
-                        <p class="app-store-subtitle">OKX</p>
-                        <button class="app-store-price">£310</button>
+                <div id="nft-content" class="tab-content" style="display: none;">
+                    <div class="other-tab-content">
+                        <i class="fa-solid fa-image" style="font-size: 40px;"></i>
+                        <p>Digital Collectibles (NFTs) go here.</p>
+                        <p style="margin-top: 10px;">Connect to an NFT marketplace.</p>
                     </div>
                 </div>
-                <div class="app-store-ratings">
-                    <span class="app-store-rating-number">4.8</span>
-                    <span class="app-store-stars">★★★★★</span>
-                    <span class="app-store-reviews">1.2M Ratings</span>
+                <div id="defi-content" class="tab-content" style="display: none;">
+                    <div class="other-tab-content">
+                        <i class="fa-solid fa-coins" style="font-size: 40px;"></i>
+                        <p>Decentralized Finance (DeFi) Dashboard.</p>
+                        <p style="margin-top: 10px;">Stake, Farm, and Borrow.</p>
+                    </div>
                 </div>
-            </div>
-            <h2 class="app-store-preview-title">Preview</h2>
-            <div class="app-store-screenshots">
-                <!-- ALL PREVIEWS NOW LOAD THANKS TO &raw=1 -->
-                <div class="app-store-screenshot" style="background-image: url('https://www.dropbox.com/scl/fi/8dcvx1gf41leqn0ajjotx/IMG_20251204_091151.jpg?rlkey=deahyldzj968uxrukyw9fnjwo&raw=1');"></div>
-                <div class="app-store-screenshot" style="background-image: url('https://www.dropbox.com/scl/fi/kiuxr2ypmszonodklyagy/IMG_20251204_084445.jpg?rlkey=m8vwrscxdmb0ipaxmd5bf6i8v&raw=1');"></div>
-                <div class="app-store-screenshot" style="background-image: url('https://www.dropbox.com/scl/fi/8b02966yaeeocveevyuvr/IMG_20251204_084401.jpg?rlkey=fs7m1emocuz46wlhbum5dpsdk&raw=1');"></div>
-                <div class="app-store-screenshot" style="background-image: url('https://www.dropbox.com/scl/fi/8dcvx1gf41leqn0ajjotx/IMG_20251204_091151.jpg?rlkey=deahyldzj968uxrukyw9fnjwo&raw=1');"></div>
-            </div>
-            <div class="app-store-description">
-                <h2 class="app-store-description-title">Description</h2>
-                <p>OKX is one of the most trusted cryptocurrency exchange apps in the world to buy Bitcoin (BTC), Ethereum (ETH), USDT, Shiba Inu (SHIB), EOS and other cryptos.</p>
-                <p>Buy, sell and manage Bitcoin and Cryptocurrencies. With OKX, you can buy, sell and manage your crypto in one place.</p>
-            </div>
-            <div class="app-store-info-section">
-                <h2 class="app-store-info-title">Information</h2>
-                <div class="app-store-info-row">
-                    <span class="app-store-info-label">Seller</span>
-                    <span class="app-store-info-value">OKX</span>
+                <div id="approvals-content" class="tab-content" style="display: none;">
+                    <div class="other-tab-content">
+                        <i class="fa-solid fa-lock" style="font-size: 40px;"></i>
+                        <p>Review and Revoke Token Approvals.</p>
+                        <p style="margin-top: 10px;">Protect your assets from rogue contracts.</p>
+                    </div>
                 </div>
-                <div class="app-store-info-row">
-                    <span class="app-store-info-label">Size</span>
-                    <span class="app-store-info-value">150 MB</span>
-                </div>
-                <div class="app-store-info-row">
-                    <span class="app-store-info-label">Category</span>
-                    <span class="app-store-info-value">Finance</span>
-                </div>
-                <div class="app-store-info-row">
-                    <span class="app-store-info-label">Compatibility</span>
-                    <span class="app-store-info-value">iPhone Requires iOS 13.0 or later.</span>
-                </div>
-                <div class="app-store-info-row">
-                    <span class="app-store-info-label">Languages</span>
-                    <span class="app-store-info-value">English, Simplified Chinese, Traditional Chinese</span>
-                </div>
-                <div class="app-store-info-row">
-                    <span class="app-store-info-label">Age Rating</span>
-                    <span class="app-store-info-value">4+</span>
-                </div>
-                <div class="app-store-info-row">
-                    <span class="app-store-info-label">Price</span>
-                    <span class="app-store-info-value">£310</span>
-                </div>
-            </div>
-        </div>
 
-    </div>
+            </div>
 
-    <!-- BOTTOM NAVIGATION -->
-    <div class="bottom-nav">
-        <div class="nav-item active" onclick="switchScreen('home')">
-            <i class="fas fa-wallet"></i>
-            <span class="nav-text">Wallet</span>
-        </div>
-        <div class="nav-item" onclick="switchScreen('app-store')">
-            <i class="fab fa-app-store-ios"></i>
-            <span class="nav-text">App Store</span>
-        </div>
-        <div class="trade-button-placeholder"></div>
-        <div class="nav-item">
-            <i class="fas fa-money-bill-wave"></i>
-            <span class="nav-text">Earn</span>
-        </div>
-        <div class="nav-item">
-            <i class="fas fa-compass"></i>
-            <span class="nav-text">Discover</span>
         </div>
         
-        <div class="trade-button">
-            <i class="fas fa-exchange-alt"></i>
+        <div class="bottom-nav">
+            <a href="https://example.com/home" target="_blank" class="nav-item active">
+                <i class="fa-solid fa-house"></i>
+                <span>Home</span>
+            </a>
+            <a href="https://example.com/tokens" target="_blank" class="nav-item">
+                <i class="fa-solid fa-circle-dot"></i>
+                <span>Tokens</span>
+            </a>
+            <a href="https://example.com/trade" target="_blank" class="nav-item">
+                <div class="trade-button">
+                    <i class="fa-solid fa-right-left"></i>
+                </div>
+            </a>
+            <a href="https://example.com/marketplace" target="_blank" class="nav-item">
+                <i class="fa-solid fa-bag-shopping"></i>
+                <span>Marketplace</span>
+            </a>
+            <a href="https://example.com/discover" target="_blank" class="nav-item">
+                <i class="fa-solid fa-magnifying-glass-chart"></i>
+                <span>Discover</span>
+            </a>
         </div>
     </div>
-</div>
 
-<script>
-    function switchScreen(screenId) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(screenId + '-screen').classList.add('active');
+    <div class="overlay" id="action-overlay">
+        <div class="action-panel" id="action-panel">
+            </div>
+    </div>
+    
+    <div style="display: none;">
         
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        if (screenId === 'home') {
-            document.querySelector('.nav-item[onclick*="home"]').classList.add('active');
-        } else {
-            document.querySelector('.nav-item[onclick*="app-store"]').classList.add('active');
-        }
-    }
-</script>
+        <template id="send-panel-template">
+            <div class="panel-header">
+                <h2>Send</h2>
+                <button class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="panel-section">
+                <h3>Send to Bank/Card</h3>
+                <div class="coin-option" data-action-target="bank-card">
+                    <div class="coin-icon" style="background-color: var(--blue-light);"><i class="fa-solid fa-credit-card"></i></div>
+                    <div class="coin-details"><strong>Send to Bank Card</strong><span>Sell crypto for instant GBP payout</span></div>
+                </div>
+            </div>
 
+            <div class="panel-section">
+                <h3>Select Token to Send (Crypto Address)</h3>
+                <div id="send-token-list">
+                    </div>
+            </div>
+            
+            <div class="panel-section">
+                <h3>Other Send Options</h3>
+                <a href="https://example.com/scan-qr" target="_blank" class="coin-option">
+                    <div class="coin-icon" style="background-color: var(--secondary-text);"><i class="fa-solid fa-qrcode"></i></div>
+                    <div class="coin-details"><strong>Scan QR Code</strong><span>Send to a scanned address</span></div>
+                </a>
+                <a href="https://example.com/address-book" target="_blank" class="coin-option">
+                    <div class="coin-icon" style="background-color: var(--secondary-text);"><i class="fa-solid fa-book"></i></div>
+                    <div class="coin-details"><strong>Address Book</strong><span>Select from saved contacts</span></div>
+                </a>
+            </div>
+        </template>
+        
+        <template id="receive-panel-template">
+            <div class="panel-header">
+                <h2>Receive</h2>
+                <button class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="panel-section">
+                <h3>Select Network/Token</h3>
+                <div id="receive-network-list">
+                    </div>
+            </div>
+            
+            <div class="qr-placeholder">
+                <p>Deposit Address for **USDT (ERC-20)**</p>
+                <div class="qr-box">
+                    [Placeholder QR Code]
+                </div>
+                <div class="address-box">0x5C808d29E10A4F6...1a2d3b4e5f6g</div>
+                <div class="copy-button">
+                    <i class="fa-solid fa-copy"></i> Copy Address
+                </div>
+            </div>
+        </template>
+
+        <template id="more-panel-template">
+            <div class="panel-header">
+                <h2>More Options</h2>
+                <button class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="panel-section">
+                <a href="https://example.com/settings" target="_blank" class="coin-option">
+                    <div class="coin-icon" style="background-color: #7952b3;"><i class="fa-solid fa-gear"></i></div>
+                    <div class="coin-details"><strong>Settings</strong><span>Manage wallet preferences and security</span></div>
+                </a>
+                <a href="https://example.com/security" target="_blank" class="coin-option">
+                    <div class="coin-icon" style="background-color: #e31b23;"><i class="fa-solid fa-shield-halved"></i></div>
+                    <div class="coin-details"><strong>Security</strong><span>Backup, Passphrase, and Biometrics</span></div>
+                </a>
+                <a href="https://example.com/help" target="_blank" class="coin-option">
+                    <div class="coin-icon" style="background-color: #00bcd4;"><i class="fa-solid fa-circle-question"></i></div>
+                    <div class="coin-details"><strong>Help Center</strong><span>Support and FAQs</span></div>
+                </a>
+            </div>
+        </template>
+
+        <template id="bank-card-input-template">
+            <div class="panel-header">
+                <h2>Link Bank Card</h2>
+                <button class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div id="bank-card-flow-container">
+                <div id="step-1-input">
+                    <div class="form-group">
+                        <label for="card-number">Card Number</label>
+                        <input type="text" id="card-number" placeholder="Enter 16-digit card number" maxlength="19">
+                        <span class="card-detection" id="card-logo-display">
+                            <i class="fa-solid fa-credit-card"></i>
+                        </span>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label for="expiry">Expiry (MM/YY)</label>
+                            <input type="text" id="expiry" placeholder="MM/YY" maxlength="5">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label for="cvv">CVV</label>
+                            <input type="password" id="cvv" placeholder="***" maxlength="3">
+                        </div>
+                    </div>
+                    <button class="btn-full" id="link-card-btn" disabled>Link Card and Send</button>
+                </div>
+            </div>
+        </template>
+
+        <template id="bank-card-amount-template">
+            <div class="panel-header">
+                <h2>Send Crypto to Card</h2>
+                <button class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p style="margin-bottom: 20px; font-size: 14px; color: var(--positive-gain);">Card Linked: <span id="linked-card-info">Visa ending in 4242</span></p>
+
+            <div class="form-group">
+                <label for="send-amount">Amount to Send (USDT)</label>
+                <input type="number" id="send-amount" placeholder="0.00" value="100.00">
+            </div>
+
+            <div class="conversion-box">
+                <div class="conversion-item">
+                    <span class="label">Exchange Rate</span>
+                    <span class="value">1 USDT ≈ 0.81 GBP</span>
+                </div>
+                <div class="conversion-item">
+                    <span class="label">Fee (1.5%)</span>
+                    <span class="value" id="fee-amount">1.50 USDT</span>
+                </div>
+                <hr style="margin: 10px 0; border: none; border-top: 1px dashed #ccc;">
+                <div class="conversion-item total">
+                    <span class="label">Amount to Receive (GBP)</span>
+                    <span class="value" id="received-amount-gbp">£80.00</span>
+                </div>
+            </div>
+            
+            <button class="btn-full" id="confirm-send-btn">Confirm & Send</button>
+        </template>
+        
+        <template id="bank-card-processing-template">
+            <div class="panel-header">
+                <h2>Processing Transaction</h2>
+                </div>
+            <div class="spinner-container" id="processing-content">
+                <div class="spinner"></div>
+                <p>Sending <strong id="checkout-crypto">100.00 USDT</strong> to your card...</p>
+                <div class="countdown">Transaction processing... <span id="countdown-timer">10</span>s remaining</div>
+            </div>
+        </template>
+        
+        <template id="bank-card-success-template">
+            <div class="panel-header">
+                <h2>Transaction Complete</h2>
+                <button class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="spinner-container">
+                <div class="success-message">
+                    <i class="fa-solid fa-check-circle"></i> Hooray! 🎉
+                </div>
+                <p style="margin-top: 20px;">
+                    Sent <strong id="success-crypto">100.00 USDT</strong>.<br>
+                    You received <strong style="color: var(--positive-gain);" id="success-fiat">£80.00 GBP</strong> instantly!
+                </p>
+                <button class="btn-full" id="success-done-btn">Done</button>
+            </div>
+        </template>
+    </div>
+
+    <script>
+        // ADDED: Expose closePanel and global state variables
+        let currentLinkedCardLast4 = '';
+        let currentSendAmount = 0;
+        let currentReceiveAmountGBP = 0;
+        const EXCHANGE_RATE_USDT_TO_GBP = 0.81;
+        const FEE_PERCENT = 0.015; // 1.5%
+
+        const closePanel = () => {
+            const overlay = document.getElementById('action-overlay');
+            const actionPanel = document.getElementById('action-panel');
+            overlay.classList.remove('active');
+            actionPanel.innerHTML = '';
+            document.body.style.overflow = '';
+        };
+        window.closePanel = closePanel; // Make it accessible from the success button
+        // END ADDED
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const actionButtons = document.querySelectorAll('.action-button[data-action]');
+            const overlay = document.getElementById('action-overlay');
+            const actionPanel = document.getElementById('action-panel');
+            
+            // --- Data for Dynamic Content ---
+            const assets = [
+                { name: 'USDT', symbol: 'USDT', balance: '419.2666', fiat: '$419.33', icon: 'T', color: 'var(--usdt-color)' },
+                { name: 'TRON', symbol: 'TRX', balance: '1.097', fiat: '$0.2206', icon: '<i class="fa-brands fa-redhat"></i>', color: 'var(--trx-color)' },
+                { name: 'usdt u', symbol: 'USDT-U', balance: '0', fiat: '$0.00', icon: 'u', color: '#333333' },
+                { name: 'usdt2', symbol: 'USDT-2', balance: '0', fiat: '$0.00', icon: 'u', color: '#333333' },
+            ];
+
+            // --- 1. Tab Switching Logic ---
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetTab = button.getAttribute('data-tab');
+
+                    // Update active tab button style
+                    tabButtons.forEach(t => t.classList.remove('active'));
+                    button.classList.add('active');
+
+                    // Update visible content
+                    tabContents.forEach(content => {
+                        content.style.display = 'none';
+                        if (content.id === `${targetTab}-content`) {
+                            content.style.display = 'block';
+                        }
+                    });
+                });
+            });
+
+            // --- 2. Modal/Panel Handlers (MODIFIED) ---
+            // closePanel is now defined globally above
+            
+            const showPanel = (contentTemplateId) => {
+                const template = document.getElementById(contentTemplateId);
+                if (!template) return;
+
+                const content = template.content.cloneNode(true);
+                actionPanel.innerHTML = '';
+                actionPanel.appendChild(content);
+
+                // Add close button listener
+                const closeBtn = actionPanel.querySelector('.close-btn');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', closePanel);
+                }
+                
+                // Dynamic content injection
+                if (contentTemplateId === 'send-panel-template') {
+                    const sendList = actionPanel.querySelector('#send-token-list');
+                    sendList.innerHTML = assets.map(asset => `
+                        <a href="https://example.com/send/${asset.symbol}" target="_blank" class="coin-option">
+                            <div class="coin-icon" style="background-color: ${asset.color};">${asset.icon}</div>
+                            <div class="coin-details"><strong>${asset.symbol}</strong><span>${asset.name}</span></div>
+                            <div class="coin-balance">${asset.balance}</div>
+                        </a>
+                    `).join('');
+                    
+                    // ADDED: Listener for the new Bank Card option
+                    actionPanel.querySelector('[data-action-target="bank-card"]').addEventListener('click', () => {
+                        showPanel('bank-card-input-template');
+                        initBankCardInput();
+                    });
+                    // END ADDED
+                    
+                } else if (contentTemplateId === 'receive-panel-template') {
+                    const receiveList = actionPanel.querySelector('#receive-network-list');
+                    receiveList.innerHTML = assets.slice(0, 2).map(asset => `
+                        <a href="https://example.com/receive/${asset.symbol}" target="_blank" class="coin-option">
+                            <div class="coin-icon" style="background-color: ${asset.color};">${asset.icon}</div>
+                            <div class="coin-details"><strong>${asset.symbol}</strong><span>${asset.name} (ERC-20)</span></div>
+                            <i class="fa-solid fa-chevron-right" style="color: var(--secondary-text);"></i>
+                        </a>
+                    `).join('');
+                } else if (contentTemplateId === 'bank-card-amount-template') { // ADDED
+                    initBankCardAmount();
+                } else if (contentTemplateId === 'bank-card-processing-template') { // ADDED
+                    startProcessingSpinner();
+                } else if (contentTemplateId === 'bank-card-success-template') { // ADDED
+                    document.getElementById('success-crypto').textContent = `${currentSendAmount.toFixed(2)} USDT`;
+                    document.getElementById('success-fiat').textContent = `£${currentReceiveAmountGBP.toFixed(2)}`;
+                    document.getElementById('success-done-btn').addEventListener('click', closePanel);
+                }
+
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            };
+
+            // ADDED: Card Flow Step 1: Input & Detection Logic
+            function initBankCardInput() {
+                const cardNumberInput = document.getElementById('card-number');
+                const linkCardBtn = document.getElementById('link-card-btn');
+                const cardLogoDisplay = document.getElementById('card-logo-display');
+
+                const updateCardDetection = () => {
+                    const number = cardNumberInput.value.replace(/\s/g, '');
+                    let logoHtml = '';
+
+                    // Basic Card Type Simulation
+                    if (number.startsWith('4')) {
+                        logoHtml = `<div class="card-logo visa-logo">VISA</div>`;
+                    } else if (number.startsWith('5')) {
+                        logoHtml = `<div class="card-logo mastercard-logo">MC</div>`;
+                    } else {
+                        logoHtml = `<i class="fa-solid fa-credit-card"></i>`;
+                    }
+                    
+                    cardLogoDisplay.innerHTML = logoHtml;
+
+                    // Enable button if number is 16 digits long (simulated validation)
+                    const isValid = number.length === 16;
+                    linkCardBtn.disabled = !isValid;
+
+                    if (isValid) {
+                        currentLinkedCardLast4 = number.slice(-4);
+                    }
+                };
+
+                // Add space formatting and detection
+                cardNumberInput.addEventListener('input', (e) => {
+                    let number = e.target.value.replace(/\D/g, '').substring(0, 16); 
+                    number = number.replace(/(\d{4})/g, '$1 ').trim(); 
+                    e.target.value = number;
+                    updateCardDetection();
+                });
+
+                // Simulate Linking Card
+                linkCardBtn.addEventListener('click', () => {
+                    if (!linkCardBtn.disabled) {
+                        showPanel('bank-card-amount-template');
+                    }
+                });
+            }
+
+            // ADDED: Card Flow Step 2: Amount & Conversion Logic
+            function initBankCardAmount() {
+                const sendAmountInput = document.getElementById('send-amount');
+                const receivedAmountGbpSpan = document.getElementById('received-amount-gbp');
+                const feeAmountSpan = document.getElementById('fee-amount');
+                const confirmSendBtn = document.getElementById('confirm-send-btn');
+                const linkedCardInfoSpan = document.getElementById('linked-card-info');
+
+                if (linkedCardInfoSpan && currentLinkedCardLast4) {
+                    linkedCardInfoSpan.textContent = `Visa ending in ${currentLinkedCardLast4}`;
+                }
+
+                const updateConversion = () => {
+                    const amount = parseFloat(sendAmountInput.value) || 0;
+                    currentSendAmount = amount;
+                    
+                    if (amount > 0) {
+                        const feeAmount = amount * FEE_PERCENT;
+                        const netCrypto = amount - feeAmount;
+                        const receivedGBP = netCrypto * EXCHANGE_RATE_USDT_TO_GBP;
+
+                        currentReceiveAmountGBP = receivedGBP;
+                        feeAmountSpan.textContent = `${feeAmount.toFixed(2)} USDT`;
+                        receivedAmountGbpSpan.textContent = `£${receivedGBP.toFixed(2)}`;
+                        confirmSendBtn.disabled = false;
+                    } else {
+                        feeAmountSpan.textContent = `0.00 USDT`;
+                        receivedAmountGbpSpan.textContent = '£0.00';
+                        confirmSendBtn.disabled = true;
+                    }
+                };
+
+                sendAmountInput.addEventListener('input', updateConversion);
+                
+                // Initialize conversion with default value
+                updateConversion(); 
+
+                // Go to Checkout/Processing step
+                confirmSendBtn.addEventListener('click', () => {
+                    if (!confirmSendBtn.disabled) {
+                        showPanel('bank-card-processing-template');
+                    }
+                });
+            }
+
+            // ADDED: Card Flow Step 3: Spinner and Countdown
+            function startProcessingSpinner() {
+                const countdownTimerSpan = document.getElementById('countdown-timer');
+                const checkoutCryptoSpan = document.getElementById('checkout-crypto');
+                
+                checkoutCryptoSpan.textContent = `${currentSendAmount.toFixed(2)} USDT`;
+
+                let count = 10;
+                
+                const countdownInterval = setInterval(() => {
+                    count--;
+                    countdownTimerSpan.textContent = count;
+
+                    if (count <= 0) {
+                        clearInterval(countdownInterval);
+                        // Transition to success page
+                        showPanel('bank-card-success-template');
+                    }
+                }, 1000);
+            }
+            // END ADDED
+
+            // Handle action button clicks (MODIFIED for showPanel)
+            actionButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const action = button.getAttribute('data-action');
+                    
+                    if (action === 'send') {
+                        showPanel('send-panel-template');
+                    } else if (action === 'receive') {
+                        showPanel('receive-panel-template');
+                    } else if (action === 'history') {
+                        // Switch to History tab
+                        document.querySelector('.tab-button[data-tab="history"]').click(); // Use click() to correctly switch views
+                    } else if (action === 'more') {
+                        showPanel('more-panel-template');
+                    }
+                });
+            });
+
+            // Close panel when clicking the overlay background
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    closePanel();
+                }
+            });
+
+            // Ensure the Crypto tab is active on load
+            document.querySelector('.tab-button[data-tab="crypto"]').click();
+        });
+    </script>
 </body>
 </html>
